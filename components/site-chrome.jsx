@@ -142,8 +142,8 @@ export function SiteChrome({ children }) {
                         className={cn(
                           "block px-4 py-3 text-sm font-medium rounded-lg transition",
                           isActive
-                            ? "bg-zinc-900 text-white"
-                            : "text-zinc-700 hover:bg-zinc-100"
+                            ? "bg-zinc-900 !text-white"
+                            : "text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900"
                         )}
                       >
                         {item.label}
