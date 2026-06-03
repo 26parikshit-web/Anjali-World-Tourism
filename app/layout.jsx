@@ -1,5 +1,5 @@
 import "./globals.css";
-import { SiteChrome } from "@/components/site-chrome";
+import { ConditionalChrome } from "@/components/conditional-chrome";
 
 export const metadata = {
   title: "Anjali World Tourism",
@@ -11,7 +11,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body suppressHydrationWarning>
-        <SiteChrome>{children}</SiteChrome>
+        <ConditionalChrome>{children}</ConditionalChrome>
       </body>
     </html>
   );
