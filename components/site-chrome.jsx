@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -15,6 +17,7 @@ const navItems = [
 export function SiteChrome({ children }) {
   const pathname = usePathname();
   const isHomePage = pathname === "/";
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-white text-zinc-900">
@@ -66,7 +69,8 @@ export function SiteChrome({ children }) {
             })}
           </nav>
 
-          <a href="https://cal.com/varsha-tourism-ndqbdf/15min" target="_blank" rel="noopener noreferrer">
+          {/* Desktop Book Meeting Button */}
+          <a href="https://cal.com/varsha-tourism-ndqbdf/15min" target="_blank" rel="noopener noreferrer" className="hidden md:block">
             <Button
               className={cn(
                 "text-xs font-semibold tracking-wide px-4 py-2 rounded-lg",
@@ -78,8 +82,94 @@ export function SiteChrome({ children }) {
               Book Meeting
             </Button>
           </a>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className={cn(
+              "md:hidden p-2 rounded-lg transition",
+              isHomePage
+                ? "text-white hover:bg-white/10"
+                : "text-zinc-900 hover:bg-zinc-100"
+            )}
+            aria-label="Toggle menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
         </div>
       </header>
+
+      {/* Mobile Sidebar */}
+      {isMobileMenuOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+
+          {/* Sidebar */}
+          <div className="fixed inset-y-0 right-0 z-50 w-64 bg-white shadow-2xl md:hidden">
+            <div className="flex h-full flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
+                <span className="text-sm font-bold tracking-[0.12em] text-zinc-900">
+                  MENU
+                </span>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-2 rounded-lg text-zinc-600 hover:bg-zinc-100 transition"
+                  aria-label="Close menu"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Navigation Links */}
+              <nav className="flex-1 overflow-y-auto px-4 py-6">
+                <div className="space-y-2">
+                  {navItems.map((item) => {
+                    const isActive =
+                      item.href === "/"
+                        ? pathname === item.href
+                        : pathname.startsWith(item.href);
+
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={cn(
+                          "block px-4 py-3 text-sm font-medium rounded-lg transition",
+                          isActive
+                            ? "bg-zinc-900 text-white"
+                            : "text-zinc-700 hover:bg-zinc-100"
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                {/* Book Meeting Button in Sidebar */}
+                <div className="mt-6 pt-6 border-t border-zinc-200">
+                  <a
+                    href="https://cal.com/varsha-tourism-ndqbdf/15min"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Button className="w-full bg-zinc-900 text-white hover:bg-zinc-800 text-sm font-semibold px-4 py-3 rounded-lg">
+                      Book Meeting
+                    </Button>
+                  </a>
+                </div>
+              </nav>
+            </div>
+          </div>
+        </>
+      )}
 
       <main>{children}</main>
 
