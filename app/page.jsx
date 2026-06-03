@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -132,12 +132,13 @@ function HorizontalScrollSection({ title, subtitle, description, items, id, bgIm
       <div className="absolute inset-0 z-0 overflow-hidden">
         {bgVideo ? (
           <video
-            className="section-video optimized-video w-full h-full object-cover"
+            autoPlay
             loop
             muted
             playsInline
-            preload="none"
+            preload="auto"
             poster="/videos/spiritual-poster.jpg"
+            className="optimized-video w-full h-full object-cover"
           >
             <source src="/videos/spiritual-bg.webm" type="video/webm" />
             <source src="/videos/spiritual-bg.mp4" type="video/mp4" />
@@ -241,29 +242,6 @@ function HorizontalScrollSection({ title, subtitle, description, items, id, bgIm
 }
 
 export default function HomePage() {
-  // Defer video loading until page is interactive
-  useEffect(() => {
-    const loadVideos = () => {
-      const heroVideo = document.querySelector('.hero-video');
-      const sectionVideo = document.querySelector('.section-video');
-      
-      if (heroVideo) {
-        heroVideo.play().catch(err => console.log('Hero video autoplay prevented:', err));
-      }
-      if (sectionVideo) {
-        sectionVideo.play().catch(err => console.log('Section video autoplay prevented:', err));
-      }
-    };
-
-    // Load videos after page is fully loaded
-    if (document.readyState === 'complete') {
-      loadVideos();
-    } else {
-      window.addEventListener('load', loadVideos);
-      return () => window.removeEventListener('load', loadVideos);
-    }
-  }, []);
-
   return (
     <div className="bg-white text-zinc-900">
       {/* Hero Section with Video Background */}
@@ -271,12 +249,13 @@ export default function HomePage() {
         {/* Video Background */}
         <div className="absolute inset-0 z-0">
           <video
-            className="hero-video optimized-video w-full h-full object-cover"
+            autoPlay
             loop
             muted
             playsInline
-            preload="none"
+            preload="auto"
             poster="/videos/hero-poster.jpg"
+            className="optimized-video w-full h-full object-cover"
           >
             <source src="/videos/hero-bg.webm" type="video/webm" />
             <source src="/videos/hero-bg.mp4" type="video/mp4" />
