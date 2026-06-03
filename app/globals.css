@@ -101,3 +101,10 @@ select {
 .text-shadow {
   text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
 }
+
+/* Optimized video background - GPU compositing */
+.optimized-video {
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
