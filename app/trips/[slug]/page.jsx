@@ -251,19 +251,19 @@ export default async function TripDetailPage({ params }) {
               )}
 
               <div className="space-y-2 pt-2">
-                <a href="#enquire">
+                <a href="https://cal.com/varsha-tourism-ndqbdf/15min" target="_blank" rel="noopener noreferrer">
                   <Button className="w-full bg-zinc-900 text-white hover:bg-zinc-800 text-sm font-semibold py-4 rounded-xl">
-                    Request This Package
+                    Book Meeting
                   </Button>
                 </a>
-                <Link href="/contact">
+                <a href="https://cal.com/varsha-tourism-ndqbdf/15min" target="_blank" rel="noopener noreferrer">
                   <Button
                     variant="outline"
                     className="w-full border-zinc-300 text-zinc-700 hover:bg-zinc-50 text-sm font-medium py-4 rounded-xl"
                   >
-                    Contact Us
+                    Request This Package
                   </Button>
-                </Link>
+                </a>
               </div>
 
               <p className="text-[10px] text-zinc-400 text-center">

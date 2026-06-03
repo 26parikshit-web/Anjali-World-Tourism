@@ -274,11 +274,11 @@ export default function HomePage() {
                 Explore Trips
               </Button>
             </Link>
-            <Link href="/contact">
+            <a href="https://cal.com/varsha-tourism-ndqbdf/15min" target="_blank" rel="noopener noreferrer">
               <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 text-sm font-semibold px-6 py-3 rounded-xl">
-                Request Custom Itinerary
+                Book Meeting
               </Button>
-            </Link>
+            </a>
           </div>
           <div className="pt-8 flex items-center justify-center gap-8 text-xs text-zinc-300">
             <div className="text-center">

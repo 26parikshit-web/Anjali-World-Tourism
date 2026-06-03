@@ -47,11 +47,11 @@ export default async function TripsPage() {
           </p>
         </div>
 
-        <Link href="/contact">
+        <a href="https://cal.com/varsha-tourism-ndqbdf/15min" target="_blank" rel="noopener noreferrer">
           <Button className="bg-zinc-900 text-white hover:bg-zinc-800 text-xs font-semibold px-4 py-2 rounded-lg">
-            Custom Itinerary
+            Book Meeting
           </Button>
-        </Link>
+        </a>
       </section>
 
       {sections.map((section) => (
@@ -133,11 +133,11 @@ export default async function TripsPage() {
           </h2>
         </div>
 
-        <Link href="/contact">
+        <a href="https://cal.com/varsha-tourism-ndqbdf/15min" target="_blank" rel="noopener noreferrer">
           <Button className="bg-white text-zinc-900 hover:bg-zinc-100 text-xs font-semibold px-4 py-2 rounded-lg">
-            Custom Itinerary
+            Book Meeting
           </Button>
-        </Link>
+        </a>
       </section>
     </div>
   );

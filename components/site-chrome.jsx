@@ -66,7 +66,7 @@ export function SiteChrome({ children }) {
             })}
           </nav>
 
-          <Link href="/contact">
+          <a href="https://cal.com/varsha-tourism-ndqbdf/15min" target="_blank" rel="noopener noreferrer">
             <Button
               className={cn(
                 "text-xs font-semibold tracking-wide px-4 py-2 rounded-lg",
@@ -75,9 +75,9 @@ export function SiteChrome({ children }) {
                   : "bg-zinc-900 text-white hover:bg-zinc-800"
               )}
             >
-              Connect to Desk
+              Book Meeting
             </Button>
-          </Link>
+          </a>
         </div>
       </header>
 
