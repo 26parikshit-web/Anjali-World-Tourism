@@ -16,7 +16,7 @@ export default function AdminLoginPage() {
 
   useEffect(() => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
     const configured = url && key && url.startsWith('http') && !url.includes('your_supabase');
     setIsConfigured(configured);
   }, []);
@@ -81,7 +81,7 @@ export default function AdminLoginPage() {
               </p>
               <pre className="mt-2 text-[10px] bg-amber-100 p-2 rounded overflow-x-auto text-amber-800">
 {`NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key`}
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key`}
               </pre>
               <p className="text-xs text-amber-700 mt-2">
                 Then run the SQL schema from <code className="bg-amber-100 px-1 rounded">supabase/schema.sql</code> in your Supabase SQL Editor.
