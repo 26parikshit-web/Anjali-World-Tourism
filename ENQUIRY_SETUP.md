@@ -56,6 +56,10 @@ Or apply the migration manually in Supabase Dashboard:
 
 To send from your own domain (e.g., `noreply@anjaliworldtourism.com`):
 
+
+
+
+
 1. Go to Resend Dashboard → **Domains**
 2. Click **Add Domain**
 3. Follow the DNS setup instructions
