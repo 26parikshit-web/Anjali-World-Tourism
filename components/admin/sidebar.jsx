@@ -9,6 +9,7 @@ import {
   Star,
   Image,
   MessageSquare,
+  Mail,
   LogOut,
   Menu,
   X,
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/admin/trips", label: "Trips", icon: Map },
   { href: "/admin/reviews", label: "Reviews", icon: Star },
   { href: "/admin/gallery", label: "Gallery", icon: Image },
+  { href: "/admin/enquiries", label: "Enquiries", icon: Mail },
   { href: "/admin/contacts", label: "Contacts", icon: MessageSquare },
 ];
 

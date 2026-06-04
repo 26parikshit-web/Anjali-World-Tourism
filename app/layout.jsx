@@ -1,5 +1,7 @@
 import "./globals.css";
 import { ConditionalChrome } from "@/components/conditional-chrome";
+import { ConditionalEnquiryButton } from "@/components/conditional-enquiry-button";
+import { ChatbotProvider } from "@/contexts/chatbot-context";
 
 export const metadata = {
   title: "Anjali World Tourism",
@@ -11,7 +13,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body suppressHydrationWarning>
-        <ConditionalChrome>{children}</ConditionalChrome>
+        <ChatbotProvider>
+          <ConditionalChrome>{children}</ConditionalChrome>
+          <ConditionalEnquiryButton />
+        </ChatbotProvider>
       </body>
     </html>
   );

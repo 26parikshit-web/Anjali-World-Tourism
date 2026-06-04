@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Plane } from "lucide-react";
+import { useChatbot } from "@/contexts/chatbot-context";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -18,23 +19,24 @@ export function SiteChrome({ children }) {
   const pathname = usePathname();
   const isHomePage = pathname === "/";
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { openChatbot } = useChatbot();
 
   return (
     <div className="min-h-screen bg-white text-zinc-900">
       <header
         className={cn(
-          "fixed inset-x-0 top-0 z-50 transition-colors",
+          "fixed inset-x-0 top-0 z-50 transition-all duration-300",
           isHomePage
             ? "backdrop-blur-md bg-black/30 border-b border-white/10"
-            : "backdrop-blur-md bg-white/90 border-b border-zinc-200"
+            : "backdrop-blur-xl bg-white/70 border-b border-zinc-200/50 shadow-sm"
         )}
       >
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
             <span
               className={cn(
-                "text-sm font-bold tracking-[0.12em]",
-                isHomePage ? "text-amber-400" : "text-zinc-900"
+                "text-sm font-bold tracking-[0.12em] transition-colors",
+                isHomePage ? "text-white" : "text-zinc-900"
               )}
             >
               ANJALI WORLD TOURISM
@@ -53,14 +55,14 @@ export function SiteChrome({ children }) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "px-3 py-1.5 text-xs font-medium tracking-wide transition rounded-lg",
+                    "px-3 py-1.5 text-xs font-medium tracking-wide transition-all rounded-lg",
                     isHomePage
                       ? isActive
-                        ? "text-white bg-white/15"
-                        : "text-zinc-300 hover:text-white hover:bg-white/10"
+                        ? "text-white bg-white/20 shadow-sm"
+                        : "text-white/90 hover:text-white hover:bg-white/10"
                       : isActive
-                        ? "text-zinc-900 bg-zinc-100"
-                        : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50"
+                        ? "text-zinc-900 bg-zinc-100/80 shadow-sm"
+                        : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/50"
                   )}
                 >
                   {item.label}
@@ -69,28 +71,28 @@ export function SiteChrome({ children }) {
             })}
           </nav>
 
-          {/* Desktop Book Meeting Button */}
-          <a href="https://cal.com/varsha-tourism-ndqbdf/15min" target="_blank" rel="noopener noreferrer" className="hidden md:block">
-            <Button
-              className={cn(
-                "text-xs font-semibold tracking-wide px-4 py-2 rounded-lg",
-                isHomePage
-                  ? "bg-white text-zinc-900 hover:bg-zinc-100"
-                  : "bg-zinc-900 text-white hover:bg-zinc-800"
-              )}
-            >
-              Book Meeting
-            </Button>
-          </a>
+          {/* Desktop Plan your Trip Button */}
+          <Button
+            onClick={openChatbot}
+            variant={isHomePage ? "outline" : "default"}
+            size="sm"
+            className={cn(
+              "hidden md:flex gap-2 font-semibold transition-all shadow-md",
+              isHomePage && "bg-white text-zinc-900 border-white/30 hover:bg-white/90 hover:shadow-lg"
+            )}
+          >
+            <Plane className="h-4 w-4" />
+            Plan Your Trip
+          </Button>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className={cn(
-              "md:hidden p-2 rounded-lg transition",
+              "md:hidden p-2 rounded-lg transition-all",
               isHomePage
                 ? "text-white hover:bg-white/10"
-                : "text-zinc-900 hover:bg-zinc-100"
+                : "text-zinc-900 hover:bg-zinc-100/80"
             )}
             aria-label="Toggle menu"
           >
@@ -152,18 +154,20 @@ export function SiteChrome({ children }) {
                   })}
                 </div>
 
-                {/* Book Meeting Button in Sidebar */}
+                {/* Plan your Trip Button in Sidebar */}
                 <div className="mt-6 pt-6 border-t border-zinc-200">
-                  <a
-                    href="https://cal.com/varsha-tourism-ndqbdf/15min"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                  <Button 
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      openChatbot();
+                    }}
+                    variant="default"
+                    size="default"
+                    className="w-full font-semibold gap-2"
                   >
-                    <Button className="w-full bg-zinc-900 text-white hover:bg-zinc-800 text-sm font-semibold px-4 py-3 rounded-lg">
-                      Book Meeting
-                    </Button>
-                  </a>
+                    <Plane className="h-4 w-4" />
+                    Plan Your Trip
+                  </Button>
                 </div>
               </nav>
             </div>

@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import Link from "next/link";
 import { Plus } from "lucide-react";
 import { TripsTable } from "./trips-table";
+import { AddTripButton } from "./add-trip-button";
 
 export default async function AdminTripsPage() {
   const supabase = await createClient();
@@ -19,13 +19,7 @@ export default async function AdminTripsPage() {
             Manage your travel packages
           </p>
         </div>
-        <Link
-          href="/admin/trips/new"
-          className="flex items-center gap-2 bg-zinc-900 text-white hover:bg-zinc-800 text-sm font-semibold px-4 py-2.5 rounded-xl transition"
-        >
-          <Plus className="w-4 h-4" />
-          Add Trip
-        </Link>
+        <AddTripButton />
       </div>
 
       <TripsTable trips={trips || []} />
