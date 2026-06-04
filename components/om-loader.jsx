@@ -27,9 +27,10 @@ export function OmLoader({ onLoadComplete }) {
   if (!isVisible) return null;
 
   // Generate 10 revolving rings with varying sizes and speeds
+  // Base size is smaller, will be scaled via CSS for responsiveness
   const rings = [...Array(10)].map((_, i) => ({
     id: i,
-    size: 200 + i * 40,
+    sizeMultiplier: 1 + i * 0.22, // Will be multiplied by base size in CSS
     duration: 5 + i * 1.2,
     reverse: i % 2 === 0,
     opacity: 0.2 + (0.3 * (1 - i / 10)),
@@ -57,22 +58,21 @@ export function OmLoader({ onLoadComplete }) {
       {/* Golden fog overlay - full screen */}
       <div className="absolute inset-0 fog-overlay" />
 
-      {/* Glow effect behind Om - larger and more intense */}
-      <div className="absolute w-[500px] h-[500px] rounded-full bg-amber-500/25 blur-3xl animate-pulse-slow" />
-      <div className="absolute w-[400px] h-[400px] rounded-full bg-orange-500/20 blur-2xl animate-pulse-slower" />
-      <div className="absolute w-[600px] h-[600px] rounded-full bg-amber-600/15 blur-3xl animate-pulse-slowest" />
+      {/* Glow effect behind Om - responsive sizes */}
+      <div className="absolute w-[250px] h-[250px] sm:w-[400px] sm:h-[400px] md:w-[500px] md:h-[500px] rounded-full bg-amber-500/25 blur-3xl animate-pulse-slow" />
+      <div className="absolute w-[200px] h-[200px] sm:w-[320px] sm:h-[320px] md:w-[400px] md:h-[400px] rounded-full bg-orange-500/20 blur-2xl animate-pulse-slower" />
+      <div className="absolute w-[300px] h-[300px] sm:w-[480px] sm:h-[480px] md:w-[600px] md:h-[600px] rounded-full bg-amber-600/15 blur-3xl animate-pulse-slowest" />
       
       {/* Om Symbol */}
-      <div className="relative z-10 flex flex-col items-center">
+      <div className="relative z-10 flex flex-col items-center px-4">
         <div className="relative flex items-center justify-center">
-          {/* 20 Animated rings */}
+          {/* 10 Animated rings - responsive */}
           {rings.map((ring) => (
             <div 
               key={`ring-${ring.id}`}
-              className="absolute rounded-full"
+              className="ring-element absolute rounded-full"
               style={{
-                width: `${ring.size}px`,
-                height: `${ring.size}px`,
+                '--ring-multiplier': ring.sizeMultiplier,
                 border: `${ring.borderWidth}px solid rgba(251, 191, 36, ${ring.opacity})`,
                 animation: `spin ${ring.duration}s linear infinite ${ring.reverse ? 'reverse' : ''}`,
                 boxShadow: ring.id < 3 ? '0 0 15px rgba(251, 191, 36, 0.2)' : 'none',
@@ -80,35 +80,35 @@ export function OmLoader({ onLoadComplete }) {
             />
           ))}
           
-          {/* Om character - LARGER */}
+          {/* Om character - responsive */}
           <span 
-            className="om-symbol text-[160px] sm:text-[220px] md:text-[280px] font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-400 to-orange-500 drop-shadow-2xl select-none relative z-10"
+            className="om-symbol text-[100px] xs:text-[120px] sm:text-[180px] md:text-[240px] lg:text-[280px] font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-400 to-orange-500 drop-shadow-2xl select-none relative z-10"
             style={{
               fontFamily: "'Noto Sans Devanagari', 'Arial Unicode MS', sans-serif",
-              textShadow: "0 0 60px rgba(251, 191, 36, 0.6), 0 0 100px rgba(251, 191, 36, 0.4), 0 0 150px rgba(251, 191, 36, 0.3)",
+              textShadow: "0 0 40px rgba(251, 191, 36, 0.6), 0 0 80px rgba(251, 191, 36, 0.4), 0 0 120px rgba(251, 191, 36, 0.3)",
             }}
           >
             ॐ
           </span>
         </div>
 
-        {/* Tagline - BOLD and LARGER - pops up quickly */}
+        {/* Tagline - responsive */}
         <p 
-          className="mt-10 text-2xl sm:text-3xl md:text-4xl font-bold tracking-[0.15em] text-amber-400 animate-fade-in-up-fast"
+          className="mt-6 sm:mt-10 text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-[0.1em] sm:tracking-[0.15em] text-amber-400 animate-fade-in-up-fast text-center"
           style={{
             fontFamily: "'Noto Sans Devanagari', sans-serif",
-            textShadow: "0 0 30px rgba(251, 191, 36, 0.6), 0 0 60px rgba(251, 191, 36, 0.3)",
+            textShadow: "0 0 20px rgba(251, 191, 36, 0.6), 0 0 40px rgba(251, 191, 36, 0.3)",
           }}
         >
           ॥ जय श्री श्याम ॥
         </p>
         
-        {/* Loading indicator - LARGER */}
-        <div className="mt-8 flex gap-2.5">
+        {/* Loading indicator - responsive */}
+        <div className="mt-6 sm:mt-8 flex gap-2 sm:gap-2.5">
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="w-3 h-3 rounded-full bg-amber-400/80 animate-bounce"
+              className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-amber-400/80 animate-bounce"
               style={{ animationDelay: `${i * 0.15}s` }}
             />
           ))}
@@ -217,6 +217,37 @@ export function OmLoader({ onLoadComplete }) {
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+
+        /* Responsive rings */
+        .ring-element {
+          --base-size: 100px;
+          width: calc(var(--base-size) * var(--ring-multiplier));
+          height: calc(var(--base-size) * var(--ring-multiplier));
+        }
+
+        @media (min-width: 400px) {
+          .ring-element {
+            --base-size: 120px;
+          }
+        }
+
+        @media (min-width: 640px) {
+          .ring-element {
+            --base-size: 160px;
+          }
+        }
+
+        @media (min-width: 768px) {
+          .ring-element {
+            --base-size: 200px;
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .ring-element {
+            --base-size: 220px;
+          }
         }
 
         .animate-pulse-slow {
