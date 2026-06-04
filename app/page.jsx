@@ -265,9 +265,6 @@ export default function HomePage() {
 
         {/* Content */}
         <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6 px-4 sm:px-6 lg:px-8 pt-16">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-amber-400">
-            Manual Travel Planning Desk
-          </p>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-white leading-[1.1] tracking-tight">
             Journeys that feel editorial on screen, deeply human in planning.
           </h1>

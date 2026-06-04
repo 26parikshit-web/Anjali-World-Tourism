@@ -2,6 +2,9 @@ import { ReviewShowcase } from "@/components/review-showcase";
 import { getReviews, getGallery } from "@/lib/data-service";
 import { Star } from "lucide-react";
 
+// Revalidate this page every 60 seconds
+export const revalidate = 60;
+
 export default async function ReviewsPage() {
   const reviews = await getReviews();
   const gallery = await getGallery();

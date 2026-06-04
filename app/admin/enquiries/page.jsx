@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { Mail, Phone, MapPin, Users, Calendar, DollarSign, Filter, RefreshCw } from "lucide-react";
+import { Mail, Phone, MapPin, Users, Calendar, IndianRupee, Filter, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function EnquiriesPage() {
@@ -260,7 +260,7 @@ export default function EnquiriesPage() {
 
                   {enquiry.budget && (
                     <div className="flex items-center gap-2 text-sm">
-                      <DollarSign className="w-4 h-4 text-zinc-400" />
+                      <IndianRupee className="w-4 h-4 text-zinc-400" />
                       <span className="text-zinc-700">{enquiry.budget}</span>
                     </div>
                   )}

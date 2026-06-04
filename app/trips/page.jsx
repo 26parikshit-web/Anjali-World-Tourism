@@ -2,6 +2,9 @@ import Link from "next/link";
 import { getTrips, getTripSections } from "@/lib/data-service";
 import { Button } from "@/components/ui/button";
 
+// Revalidate this page every 60 seconds
+export const revalidate = 60;
+
 export default async function TripsPage() {
   const trips = await getTrips();
   const tripSections = getTripSections();
