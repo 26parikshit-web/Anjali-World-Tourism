@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { Button } from "@/components/ui/button";
+import { OmLoader } from "@/components/om-loader";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -242,8 +243,12 @@ function HorizontalScrollSection({ title, subtitle, description, items, id, bgIm
 }
 
 export default function HomePage() {
+  const [isLoading, setIsLoading] = useState(true);
+
   return (
     <div className="bg-white text-zinc-900">
+      {/* Om Loader - Splash Screen */}
+      <OmLoader onLoadComplete={() => setIsLoading(false)} />
       {/* Hero Section with Video Background */}
       <section className="min-h-screen flex items-center justify-center relative overflow-hidden">
         {/* Video Background */}
