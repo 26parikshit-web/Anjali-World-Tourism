@@ -4,6 +4,9 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Custom xs breakpoint */
+@custom-variant xs (@media (width >= 400px));
+
 :root {
   --background: oklch(0.99 0.002 260);
   --foreground: oklch(0.13 0.02 260);

@@ -43,49 +43,66 @@ export function OmLoader({ onLoadComplete }) {
         isFading ? "opacity-0" : "opacity-100"
       }`}
     >
-      {/* Large unified smoke layer - bottom */}
-      <div className="smoke-layer-bottom absolute inset-0" />
-      
-      {/* Large unified smoke layer - ambient */}
-      <div className="smoke-layer-ambient absolute inset-0" />
-      
-      {/* Large unified smoke layer - rising */}
-      <div className="smoke-layer-rising absolute inset-0" />
-      
-      {/* Dense golden smoke gradient at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-amber-900/40 via-amber-800/20 to-transparent" />
-      
-      {/* Golden fog overlay - full screen */}
-      <div className="absolute inset-0 fog-overlay" />
+      {/* Background smoke effects - isolated into their own compositing layer */}
+      <div className="smoke-stage absolute inset-0">
+        {/* Large unified smoke layer - bottom */}
+        <div className="smoke-layer-bottom absolute inset-0" />
+        
+        {/* Large unified smoke layer - ambient */}
+        <div className="smoke-layer-ambient absolute inset-0" />
+        
+        {/* Large unified smoke layer - rising */}
+        <div className="smoke-layer-rising absolute inset-0" />
+        
+        {/* Dense golden smoke gradient at bottom */}
+        <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-amber-900/40 via-amber-800/20 to-transparent" />
+        
+        {/* Golden fog overlay - full screen */}
+        <div className="absolute inset-0 fog-overlay" />
+      </div>
 
-      {/* Glow effect behind Om - responsive sizes */}
-      <div className="absolute w-[250px] h-[250px] sm:w-[400px] sm:h-[400px] md:w-[500px] md:h-[500px] rounded-full bg-amber-500/25 blur-3xl animate-pulse-slow" />
-      <div className="absolute w-[200px] h-[200px] sm:w-[320px] sm:h-[320px] md:w-[400px] md:h-[400px] rounded-full bg-orange-500/20 blur-2xl animate-pulse-slower" />
-      <div className="absolute w-[300px] h-[300px] sm:w-[480px] sm:h-[480px] md:w-[600px] md:h-[600px] rounded-full bg-amber-600/15 blur-3xl animate-pulse-slowest" />
-      
-      {/* Om Symbol */}
-      <div className="relative z-10 flex flex-col items-center px-4">
+      {/* Om Symbol - isolated into its own compositing layer */}
+      <div className="om-stage relative z-10 flex flex-col items-center px-4">
         <div className="relative flex items-center justify-center">
-          {/* 10 Animated rings - responsive */}
+          {/* 10 Animated rings - responsive. Spin (outer) and pulse (inner) on
+              separate elements so they don't fight over `transform`. */}
           {rings.map((ring) => (
-            <div 
+            <div
               key={`ring-${ring.id}`}
-              className="ring-element absolute rounded-full"
+              className="ring-enter absolute"
               style={{
                 '--ring-multiplier': ring.sizeMultiplier,
-                border: `${ring.borderWidth}px solid rgba(251, 191, 36, ${ring.opacity})`,
-                animation: `spin ${ring.duration}s linear infinite ${ring.reverse ? 'reverse' : ''}`,
-                boxShadow: ring.id < 3 ? '0 0 15px rgba(251, 191, 36, 0.2)' : 'none',
+                '--enter-delay': `${ring.id * 0.1}s`,
+                animation: `ring-enter-anim 0.65s cubic-bezier(0.22, 1, 0.36, 1) var(--enter-delay) both`,
               }}
-            />
+            >
+              <div
+                className="ring-spinner"
+                style={{
+                  '--spin-duration': `${ring.duration}s`,
+                  '--spin-direction': ring.reverse ? 'reverse' : 'normal',
+                  animation: `ring-spin var(--spin-duration) linear infinite var(--spin-direction)`,
+                }}
+              >
+                <div
+                  className="ring-element rounded-full"
+                  style={{
+                    '--ring-opacity': ring.opacity,
+                    '--pulse-duration': `${2.5 + ring.id * 0.3}s`,
+                    '--pulse-delay': `${0.65 + ring.id * 0.1}s`,
+                    border: `${ring.borderWidth}px solid rgba(251, 191, 36, ${ring.opacity})`,
+                    animation: `ring-pulse var(--pulse-duration) ease-in-out infinite var(--pulse-delay)`,
+                  }}
+                />
+              </div>
+            </div>
           ))}
           
           {/* Om character - responsive */}
           <span 
-            className="om-symbol text-[100px] xs:text-[120px] sm:text-[180px] md:text-[240px] lg:text-[280px] font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-400 to-orange-500 drop-shadow-2xl select-none relative z-10"
+            className="om-symbol text-[100px] xs:text-[120px] sm:text-[180px] md:text-[240px] lg:text-[280px] font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-400 to-orange-500 select-none relative z-10"
             style={{
               fontFamily: "'Noto Sans Devanagari', 'Arial Unicode MS', sans-serif",
-              textShadow: "0 0 40px rgba(251, 191, 36, 0.6), 0 0 80px rgba(251, 191, 36, 0.4), 0 0 120px rgba(251, 191, 36, 0.3)",
             }}
           >
             ॐ
@@ -95,12 +112,8 @@ export function OmLoader({ onLoadComplete }) {
         {/* Tagline - responsive */}
         <p 
           className="mt-6 sm:mt-10 text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-[0.1em] sm:tracking-[0.15em] text-amber-400 animate-fade-in-up-fast text-center"
-          style={{
-            fontFamily: "'Noto Sans Devanagari', sans-serif",
-            textShadow: "0 0 20px rgba(251, 191, 36, 0.6), 0 0 40px rgba(251, 191, 36, 0.3)",
-          }}
         >
-          ॥ जय श्री श्याम ॥
+          Jai Shree Shyam
         </p>
         
         {/* Loading indicator - responsive */}
@@ -157,43 +170,22 @@ export function OmLoader({ onLoadComplete }) {
           animation: fog-pulse 5s ease-in-out infinite alternate;
         }
 
+        /* Opacity-only animations — blurred layers must NOT animate transform,
+           or the browser re-rasterizes the blur every frame (heavy jank). */
         @keyframes smoke-bottom-rise {
-          0%, 100% {
-            transform: translateY(0) scaleY(1);
-            opacity: 0.8;
-          }
-          50% {
-            transform: translateY(-50px) scaleY(1.2);
-            opacity: 1;
-          }
+          0%, 100% { opacity: 0.75; }
+          50%      { opacity: 1; }
         }
 
         @keyframes smoke-ambient-drift {
-          0% {
-            transform: translate(0, 0) scale(1);
-            opacity: 0.7;
-          }
-          100% {
-            transform: translate(30px, -20px) scale(1.1);
-            opacity: 0.9;
-          }
+          0%   { opacity: 0.6; }
+          100% { opacity: 0.95; }
         }
 
         @keyframes smoke-wisps-rise {
-          0% {
-            transform: translateY(50px) scale(0.9);
-            opacity: 0;
-          }
-          20% {
-            opacity: 0.8;
-          }
-          80% {
-            opacity: 0.4;
-          }
-          100% {
-            transform: translateY(-100px) scale(1.3);
-            opacity: 0;
-          }
+          0%   { opacity: 0.2; }
+          50%  { opacity: 0.7; }
+          100% { opacity: 0.2; }
         }
 
         @keyframes fog-pulse {
@@ -214,40 +206,99 @@ export function OmLoader({ onLoadComplete }) {
           }
         }
 
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        /* Isolate background smoke + Om stage into separate GPU layers so
+           their repaints never affect each other. translateZ(0) promotes
+           each to its own composited layer up-front (from the first frame),
+           so the rings' animation never triggers a re-composite of the
+           background. */
+        .smoke-stage {
+          contain: layout paint;
+          backface-visibility: hidden;
+          will-change: transform, opacity;
+          /* Hidden at start, then rises/translates in together with the rings.
+             Translating the parent layer is cheap (blurred children are
+             rasterized once and the whole layer is just moved by the GPU). */
+          opacity: 0;
+          transform: translate3d(0, 80px, 0);
+          animation: smoke-stage-in 1.6s cubic-bezier(0.22, 1, 0.36, 1) 0.8s both;
         }
 
-        /* Responsive rings */
-        .ring-element {
+        @keyframes smoke-stage-in {
+          from { opacity: 0; transform: translate3d(0, 80px, 0); }
+          to   { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+
+        .om-stage {
+          transform: translateZ(0);
+          backface-visibility: hidden;
+        }
+
+        /* Entrance wrapper: reveals rings from innermost -> outermost.
+           Scale + opacity only, runs ONCE (separate element so it never
+           fights the spin/pulse transforms). */
+        @keyframes ring-enter-anim {
+          from { opacity: 0; transform: scale(0.05); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+
+        .ring-enter {
           --base-size: 100px;
           width: calc(var(--base-size) * var(--ring-multiplier));
           height: calc(var(--base-size) * var(--ring-multiplier));
+          opacity: 0;
+          will-change: transform, opacity;
+          transform-origin: center center;
+        }
+
+        /* Spinner wrapper: handles ONLY rotation (GPU-composited) */
+        @keyframes ring-spin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+
+        .ring-spinner {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          will-change: transform;
+          transform-origin: center center;
+        }
+
+        /* Inner ring: handles ONLY opacity + scale (compositable) */
+        @keyframes ring-pulse {
+          0%, 100% {
+            opacity: var(--ring-opacity);
+            transform: scale(1);
+          }
+          50% {
+            opacity: calc(var(--ring-opacity) * 1.6);
+            transform: scale(1.05);
+          }
+        }
+
+        .ring-element {
+          width: 100%;
+          height: 100%;
+          will-change: opacity, transform;
+          transform-origin: center center;
         }
 
         @media (min-width: 400px) {
-          .ring-element {
-            --base-size: 120px;
-          }
+          .ring-enter { --base-size: 120px; }
         }
 
         @media (min-width: 640px) {
-          .ring-element {
-            --base-size: 160px;
-          }
+          .ring-enter { --base-size: 160px; }
         }
 
         @media (min-width: 768px) {
-          .ring-element {
-            --base-size: 200px;
-          }
+          .ring-enter { --base-size: 200px; }
         }
 
         @media (min-width: 1024px) {
-          .ring-element {
-            --base-size: 220px;
-          }
+          .ring-enter { --base-size: 220px; }
         }
 
         .animate-pulse-slow {
@@ -281,9 +332,10 @@ export function OmLoader({ onLoadComplete }) {
           }
         }
 
+        /* Glow orbs are heavily blurred — animate opacity only (no scale) */
         @keyframes pulse {
-          0%, 100% { opacity: 0.6; transform: scale(1); }
-          50% { opacity: 0.9; transform: scale(1.1); }
+          0%, 100% { opacity: 0.55; }
+          50%      { opacity: 0.9; }
         }
 
         .duration-800 {
