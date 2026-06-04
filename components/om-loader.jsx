@@ -100,7 +100,7 @@ export function OmLoader({ onLoadComplete }) {
           
           {/* Om character - responsive */}
           <span 
-            className="om-symbol text-[100px] xs:text-[120px] sm:text-[180px] md:text-[240px] lg:text-[280px] font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-400 to-orange-500 select-none relative z-10"
+            className="om-symbol inline-block leading-none text-[72px] xs:text-[90px] sm:text-[150px] md:text-[210px] lg:text-[260px] font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-400 to-orange-500 select-none relative z-10"
             style={{
               fontFamily: "'Noto Sans Devanagari', 'Arial Unicode MS', sans-serif",
             }}
