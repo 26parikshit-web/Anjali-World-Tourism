@@ -151,3 +151,100 @@ select {
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
 }
+
+/* ------------------------------------------------------------------ */
+/* Ambient, decorative motion. All keyframes animate ONLY transform /  */
+/* opacity so they stay on the GPU compositor and never trigger layout. */
+/* ------------------------------------------------------------------ */
+
+/* Slow drifting aurora blobs behind the hero */
+@keyframes aurora-drift-a {
+  0%   { transform: translate3d(-8%, -6%, 0) scale(1); }
+  50%  { transform: translate3d(6%, 4%, 0) scale(1.15); }
+  100% { transform: translate3d(-8%, -6%, 0) scale(1); }
+}
+@keyframes aurora-drift-b {
+  0%   { transform: translate3d(6%, 8%, 0) scale(1.1); }
+  50%  { transform: translate3d(-6%, -4%, 0) scale(1); }
+  100% { transform: translate3d(6%, 8%, 0) scale(1.1); }
+}
+
+.aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.5;
+  will-change: transform;
+  pointer-events: none;
+}
+.aurora-a { animation: aurora-drift-a 18s ease-in-out infinite; }
+.aurora-b { animation: aurora-drift-b 22s ease-in-out infinite; }
+
+/* Gentle floating used for ambient particles / accents */
+@keyframes float-soft {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(0, -14px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+.float-soft { animation: float-soft 6s ease-in-out infinite; will-change: transform; }
+
+/* Seamless marquee strip (track is duplicated, so -50% loops perfectly) */
+@keyframes marquee-x {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-x 32s linear infinite;
+  will-change: transform;
+}
+.marquee-track:hover { animation-play-state: paused; }
+
+/* Slow text/gradient shimmer for accents */
+@keyframes shimmer-x {
+  to { background-position: 200% center; }
+}
+.shimmer-text {
+  background-size: 200% auto;
+  animation: shimmer-x 5s linear infinite;
+}
+
+/* Soft pulsing status dot */
+@keyframes ping-soft {
+  0%   { transform: scale(1); opacity: 0.9; }
+  75%, 100% { transform: scale(2.4); opacity: 0; }
+}
+.ping-soft { animation: ping-soft 2s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-a, .aurora-b, .float-soft, .marquee-track, .shimmer-text, .ping-soft,
+  .page-aurora-a, .page-aurora-b {
+    animation: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Light-page ambient background (trips, reviews, contact, detail)    */
+/* ------------------------------------------------------------------ */
+
+.page-bg-grid {
+  background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.035) 1px, transparent 0);
+  background-size: 28px 28px;
+}
+
+.page-aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  will-change: transform;
+  pointer-events: none;
+}
+
+.page-aurora-a {
+  animation: aurora-drift-a 24s ease-in-out infinite;
+}
+
+.page-aurora-b {
+  animation: aurora-drift-b 28s ease-in-out infinite;
+}

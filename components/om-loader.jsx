@@ -1,19 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+
+const LOADER_SEEN_KEY = "anjali-om-loader-seen";
 
 export function OmLoader({ onLoadComplete }) {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   const [isFading, setIsFading] = useState(false);
 
   useEffect(() => {
+    if (sessionStorage.getItem(LOADER_SEEN_KEY)) {
+      onLoadComplete?.();
+      return;
+    }
+
+    setIsVisible(true);
     const minDisplayTime = 2500;
-    
+
     const fadeTimer = setTimeout(() => {
       setIsFading(true);
     }, minDisplayTime);
 
     const hideTimer = setTimeout(() => {
+      sessionStorage.setItem(LOADER_SEEN_KEY, "1");
       setIsVisible(false);
       onLoadComplete?.();
     }, minDisplayTime + 800);
@@ -37,9 +47,11 @@ export function OmLoader({ onLoadComplete }) {
     borderWidth: i < 3 ? 2 : 1,
   }));
 
-  return (
+  // Portal to document.body so the overlay sits above the fixed navbar.
+  // Inside <main z-10>, a local z-[100] cannot escape that stacking context.
+  return createPortal(
     <div
-      className={`fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950 transition-opacity duration-800 ${
+      className={`fixed inset-0 z-[200] flex items-center justify-center bg-zinc-950 transition-opacity duration-800 ${
         isFading ? "opacity-0" : "opacity-100"
       }`}
     >
@@ -342,6 +354,7 @@ export function OmLoader({ onLoadComplete }) {
           transition-duration: 800ms;
         }
       `}</style>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Plus, X, GripVertical } from "lucide-react";
+import { revalidateTripsOnServer } from "@/lib/revalidate-trips-client";
 
 const categories = [
   "Spiritual Journey",
@@ -157,6 +158,8 @@ export function TripForm({ trip }) {
         const { error } = await supabase.from("trips").insert([dataToSave]);
         if (error) throw error;
       }
+
+      await revalidateTripsOnServer();
 
       router.push("/admin/trips");
       router.refresh();

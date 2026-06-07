@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Plane } from "lucide-react";
 import { useChatbot } from "@/contexts/chatbot-context";
+import { PageBackground } from "@/components/home/page-background";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -22,7 +23,14 @@ export function SiteChrome({ children }) {
   const { openChatbot } = useChatbot();
 
   return (
-    <div className="min-h-screen bg-white text-zinc-900">
+    <div
+      className={cn(
+        "relative min-h-screen text-zinc-900",
+        isHomePage ? "bg-white" : "bg-zinc-50"
+      )}
+    >
+      {!isHomePage && <PageBackground />}
+
       <header
         className={cn(
           "fixed inset-x-0 top-0 z-50 transition-all duration-300",
@@ -175,10 +183,10 @@ export function SiteChrome({ children }) {
         </>
       )}
 
-      <main>{children}</main>
+      <main className="relative z-10">{children}</main>
 
       {!isHomePage && (
-        <footer className="border-t border-zinc-200 bg-zinc-50">
+        <footer className="relative z-10 border-t border-zinc-200/80 bg-white/60 backdrop-blur-sm">
           <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-8 text-xs text-zinc-500 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
             <div>
               <p className="font-semibold uppercase tracking-[0.15em] text-zinc-900">
