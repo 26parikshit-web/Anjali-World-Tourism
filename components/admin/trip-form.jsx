@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Plus, X, GripVertical } from "lucide-react";
 import { revalidateTripsOnServer } from "@/lib/revalidate-trips-client";
+import { pickTripRow } from "@/lib/trip-row";
 
 const categories = [
   "Spiritual Journey",
@@ -35,7 +36,7 @@ export function TripForm({ trip }) {
         try {
           const parsed = JSON.parse(draftData);
           sessionStorage.removeItem("tripDraft"); // Clear after loading
-          return parsed;
+          return pickTripRow(parsed);
         } catch (err) {
           console.error("Failed to parse draft data:", err);
         }
@@ -140,13 +141,13 @@ export function TripForm({ trip }) {
     setError(null);
 
     try {
-      const dataToSave = {
+      const dataToSave = pickTripRow({
         ...formData,
         highlights: formData.highlights.filter(Boolean),
         inclusions: formData.inclusions.filter(Boolean),
         exclusions: formData.exclusions.filter(Boolean),
         tags: formData.tags.filter(Boolean),
-      };
+      });
 
       if (isEditing) {
         const { error } = await supabase

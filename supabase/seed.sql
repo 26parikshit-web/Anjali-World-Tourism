@@ -5,7 +5,7 @@
 -- TRIPS DATA
 -- =====================
 
-INSERT INTO trips (slug, name, category, short_description, description, duration, price, group_size, difficulty, best_season, hero_image, highlights, itinerary, inclusions, exclusions, gallery, tags, preferences, is_featured, is_active) VALUES
+INSERT INTO trips (slug, name, category, short_description, description, duration, price, group_size, difficulty, best_season, hero_image, highlights, itinerary, inclusions, exclusions, gallery, tags, is_featured, is_active) VALUES
 
 -- Char Dham Yatra
 ('char-dham-yatra', 'Char Dham Yatra', 'Spiritual Journey', 
@@ -23,7 +23,6 @@ The journey begins from Haridwar and takes you through breathtaking mountain lan
 '["Personal expenses", "Travel insurance", "Pony/Palki charges", "Tips and gratitude", "Anything not mentioned in inclusions"]'::jsonb,
 '[{"type": "image", "src": "/images/chaarDham.webp", "alt": "Char Dham Temple"}]'::jsonb,
 '["Pilgrimage", "Helicopter Option", "Family Friendly", "Senior Support"]'::jsonb,
-'{"travel": "Bus, Train", "hotels": "3 Star", "meals": "Breakfast & Dinner"}'::jsonb,
 true, true),
 
 -- 12 Jyotirlinga
@@ -42,7 +41,6 @@ Each Jyotirlinga has its unique mythology and architectural beauty. Our expert g
 '["Lunch and dinner", "Personal expenses", "Travel insurance", "Camera fees at temples", "Tips and donations"]'::jsonb,
 '[{"type": "image", "src": "/images/jyoti.jpg", "alt": "12 Jyotirlinga Temples"}]'::jsonb,
 '["Temple Circuit", "Multi-City", "Manual Routing", "Premium Stays"]'::jsonb,
-'{"travel": "Bus, Train, Airways", "hotels": "3-4 Star", "meals": "Breakfast Only"}'::jsonb,
 true, true),
 
 -- Panchkedar
@@ -61,7 +59,6 @@ This expedition requires good physical fitness due to the trekking involved, but
 '["Personal trekking gear", "Travel insurance", "Helicopter charges", "Personal expenses", "Tips for guides"]'::jsonb,
 '[{"type": "image", "src": "/images/panchkedar.webp", "alt": "Panchkedar Temple"}]'::jsonb,
 '["Trek Support", "Alpine Camps", "Guide Included", "Himalayan"]'::jsonb,
-'{"travel": "Bus", "hotels": "3 Star", "meals": "All Meals Included"}'::jsonb,
 false, true),
 
 -- Spiti Valley
@@ -80,7 +77,6 @@ Our package includes comfortable stays in boutique camps and homestays, experien
 '["Personal expenses", "Travel insurance", "Alcoholic beverages", "Tips for staff", "Anything not mentioned"]'::jsonb,
 '[{"type": "image", "src": "https://images.unsplash.com/photo-1518002054494-3a6f94352e9d?auto=format&fit=crop&w=1200&q=80", "alt": "Spiti Valley"}]'::jsonb,
 '["Road Trip", "Stargazing", "Adventure", "Photography"]'::jsonb,
-'{"travel": "Bus", "hotels": "Budget Friendly", "meals": "All Meals Included"}'::jsonb,
 true, true),
 
 -- Goa Getaway
@@ -99,7 +95,6 @@ The package includes curated experiences while leaving room for spontaneous adve
 '["Flights", "Lunch and dinner", "Alcoholic beverages", "Personal expenses", "Additional activities"]'::jsonb,
 '[{"type": "image", "src": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1200&q=80", "alt": "Goa Beach"}]'::jsonb,
 '["Beach Villa", "Nightlife", "Sunset Cruise", "Water Sports"]'::jsonb,
-'{"travel": "Airways", "hotels": "4 Star", "meals": "Breakfast Only"}'::jsonb,
 false, true),
 
 -- Varkala Cliff Escape
@@ -118,7 +113,6 @@ Our package includes comfortable beachside stays, curated café recommendations,
 '["Flights", "Lunch and dinner", "Personal expenses", "Additional treatments"]'::jsonb,
 '[{"type": "image", "src": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80", "alt": "Varkala Cliff"}]'::jsonb,
 '["Cliffside", "Ayurveda", "Slow Travel", "Yoga"]'::jsonb,
-'{"travel": "Train, Airways", "hotels": "3 Star", "meals": "Breakfast Only"}'::jsonb,
 false, true),
 
 -- Tawang Skyline Route
@@ -137,7 +131,6 @@ Our package includes all necessary permits, experienced drivers familiar with th
 '["Flights", "Personal expenses", "Bum La Pass permit (extra)", "Travel insurance"]'::jsonb,
 '[{"type": "image", "src": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80", "alt": "Tawang Monastery"}]'::jsonb,
 '["Monastery", "Scenic Drive", "Permits Included", "Northeast"]'::jsonb,
-'{"travel": "Airways, Bus", "hotels": "3 Star", "meals": "All Meals Included"}'::jsonb,
 false, true),
 
 -- Kasol & Parvati Trails
@@ -156,7 +149,6 @@ Our package keeps things flexible – we arrange comfortable stays and transport
 '["Lunch and dinner", "Personal expenses", "Café bills", "Additional activities"]'::jsonb,
 '[{"type": "image", "src": "https://images.unsplash.com/photo-1527631746610-bca00a040d60?auto=format&fit=crop&w=1200&q=80", "alt": "Kasol River"}]'::jsonb,
 '["Trekking", "Café Culture", "Weekend Trip", "Budget Friendly"]'::jsonb,
-'{"travel": "Bus", "hotels": "Budget Friendly", "meals": "Breakfast Only"}'::jsonb,
 false, true),
 
 -- Kashmir Family Retreat
@@ -175,7 +167,6 @@ Our team ensures every detail is handled – from comfortable vehicles to family
 '["Flights", "Gondola tickets", "Personal expenses", "Pony rides"]'::jsonb,
 '[{"type": "image", "src": "https://images.unsplash.com/photo-1598091383021-15ddea10925d?auto=format&fit=crop&w=1200&q=80", "alt": "Kashmir"}]'::jsonb,
 '["Nature", "Houseboat", "Easy Pace", "Family Friendly"]'::jsonb,
-'{"travel": "Airways", "hotels": "4 Star", "meals": "Breakfast & Dinner"}'::jsonb,
 false, true),
 
 -- Kerala Backwaters
@@ -194,7 +185,6 @@ Every detail is arranged for comfort – from the best houseboats to air-conditi
 '["Flights", "Lunch and dinner (except houseboat)", "Personal expenses", "Entry fees"]'::jsonb,
 '[{"type": "image", "src": "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&w=1200&q=80", "alt": "Kerala Backwaters"}]'::jsonb,
 '["Backwaters", "Culture", "Premium Stay", "Family"]'::jsonb,
-'{"travel": "Airways, Train", "hotels": "4 Star", "meals": "Breakfast Only"}'::jsonb,
 false, true),
 
 -- Dubai Family Escape
@@ -211,7 +201,6 @@ From the observation deck of Burj Khalifa to the thrills of IMG Worlds of Advent
 '["Flights", "Visa fees", "Theme park tickets", "Personal shopping", "Lunch and dinner"]'::jsonb,
 '[{"type": "image", "src": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80", "alt": "Dubai Skyline"}]'::jsonb,
 '["International", "City Break", "Kids Friendly", "Theme Parks"]'::jsonb,
-'{"travel": "Airways", "hotels": "4 Star", "meals": "Breakfast Only"}'::jsonb,
 false, true),
 
 -- Kashmir Honeymoon Edit
@@ -228,7 +217,6 @@ From a luxurious houseboat on Dal Lake to a cozy resort in Pahalgam, every stay 
 '["Flights", "Gondola tickets", "Spa charges", "Personal expenses"]'::jsonb,
 '[{"type": "image", "src": "https://images.unsplash.com/photo-1598091383021-15ddea10925d?auto=format&fit=crop&w=1200&q=80", "alt": "Kashmir Romance"}]'::jsonb,
 '["Romantic", "Mountain Stay", "Private Transfers", "Luxury"]'::jsonb,
-'{"travel": "Airways", "hotels": "5 Star", "meals": "All Meals Included"}'::jsonb,
 true, true),
 
 -- Bali Sunset Voyage
@@ -245,7 +233,6 @@ Stay in a private pool villa, explore ancient temples, enjoy couple''s spa treat
 '["Flights", "Visa (if applicable)", "Lunch and other dinners", "Water sports", "Personal expenses"]'::jsonb,
 '[{"type": "image", "src": "https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?auto=format&fit=crop&w=1200&q=80", "alt": "Bali Beach"}]'::jsonb,
 '["International", "Villa", "Sunset Dinner", "Spa"]'::jsonb,
-'{"travel": "Airways", "hotels": "5 Star", "meals": "Breakfast & Dinner"}'::jsonb,
 false, true),
 
 -- Udaipur Royal Romance
@@ -262,7 +249,6 @@ From boat rides on Lake Pichola to dinners overlooking the City Palace, every ex
 '["Flights", "Lunch and other dinners", "Vintage car ride (optional)", "Personal expenses"]'::jsonb,
 '[{"type": "image", "src": "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=1200&q=80", "alt": "Udaipur Lake"}]'::jsonb,
 '["Heritage", "Luxury", "Lake City", "Romantic"]'::jsonb,
-'{"travel": "Airways, Train", "hotels": "5 Star", "meals": "Breakfast & Dinner"}'::jsonb,
 false, true);
 
 

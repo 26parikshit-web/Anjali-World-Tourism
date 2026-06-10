@@ -24,7 +24,6 @@ CREATE TABLE IF NOT EXISTS trips (
   exclusions JSONB DEFAULT '[]'::jsonb,
   gallery JSONB DEFAULT '[]'::jsonb,
   tags JSONB DEFAULT '[]'::jsonb,
-  preferences JSONB DEFAULT '{"travel": "", "hotels": "", "meals": ""}'::jsonb,
   is_featured BOOLEAN DEFAULT false,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

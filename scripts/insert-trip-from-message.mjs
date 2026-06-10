@@ -8,6 +8,7 @@
 import { readFileSync } from "fs";
 import { createClient } from "@supabase/supabase-js";
 import { parseTripMessages } from "../lib/trip-message-parser.js";
+import { pickTripRow } from "../lib/trip-row.js";
 
 const filePath = process.argv[2];
 if (!filePath) {
@@ -41,23 +42,24 @@ let updated = 0;
 let failed = 0;
 
 for (const trip of trips) {
-  console.log(`→ ${trip.name}`);
+  const row = pickTripRow(trip);
+  console.log(`→ ${row.name}`);
   console.log(
-    `   slug: ${trip.slug} | ${trip.category} | itinerary: ${trip.itinerary.length} | inc: ${trip.inclusions.length} | exc: ${trip.exclusions.length}`
+    `   slug: ${row.slug} | ${row.category} | itinerary: ${row.itinerary.length} | inc: ${row.inclusions.length} | exc: ${row.exclusions.length}`
   );
 
   const { data: existing } = await supabase
     .from("trips")
     .select("id, slug")
-    .eq("slug", trip.slug)
+    .eq("slug", row.slug)
     .maybeSingle();
 
   let error;
   if (existing) {
-    ({ error } = await supabase.from("trips").update(trip).eq("id", existing.id));
+    ({ error } = await supabase.from("trips").update(row).eq("id", existing.id));
     if (!error) updated++;
   } else {
-    ({ error } = await supabase.from("trips").insert([trip]));
+    ({ error } = await supabase.from("trips").insert([row]));
     if (!error) inserted++;
   }
 
