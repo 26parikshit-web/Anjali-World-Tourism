@@ -1,7 +1,15 @@
 import { getReviews } from "@/lib/data-service";
 import { ReviewsPageView } from "@/components/pages/reviews-page-view";
+import { buildPageMetadata } from "@/lib/seo";
 
 export const revalidate = 60;
+
+export const metadata = buildPageMetadata({
+  title: "Traveler Reviews",
+  description:
+    "Read real stories from travelers who planned spiritual journeys and getaways with Anjali World Tourism.",
+  path: "/reviews",
+});
 
 export default async function ReviewsPage() {
   const reviews = await getReviews();

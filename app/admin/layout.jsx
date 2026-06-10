@@ -5,6 +5,10 @@ import { AdminSidebar } from "@/components/admin/sidebar";
 export const metadata = {
   title: "Admin | Anjali World Tourism",
   description: "Admin dashboard for managing trips, reviews, and contacts",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default async function AdminLayout({ children }) {

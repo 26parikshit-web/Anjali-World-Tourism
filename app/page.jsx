@@ -5,8 +5,16 @@ import {
   fallbackSpiritualJourneys,
   fallbackFriendsGetaway,
 } from "@/lib/home-trip-cards";
+import { buildPageMetadata } from "@/lib/seo";
 
 export const revalidate = 60;
+
+export const metadata = buildPageMetadata({
+  title: "Spiritual Journeys & Curated Travel in India",
+  description:
+    "Plan spiritual pilgrimages, friend getaways, family holidays, and honeymoons with Anjali World Tourism — real planners, handcrafted itineraries.",
+  path: "/",
+});
 
 const SPIRITUAL_JOURNEY_CATEGORY = "Spiritual Journey";
 const FRIENDS_GETAWAY_CATEGORY = "Friends Getaway";

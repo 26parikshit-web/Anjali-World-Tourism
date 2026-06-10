@@ -1,7 +1,15 @@
 import { getTrips, getTripSections } from "@/lib/data-service";
 import { TripsCatalog } from "@/components/pages/trips-catalog";
+import { buildPageMetadata } from "@/lib/seo";
 
 export const revalidate = 60;
+
+export const metadata = buildPageMetadata({
+  title: "Trip Catalogue",
+  description:
+    "Browse spiritual journeys, friends getaways, family holidays, and honeymoon packages — curated routes across every mood of travel.",
+  path: "/trips",
+});
 
 export default async function TripsPage() {
   const trips = await getTrips();
