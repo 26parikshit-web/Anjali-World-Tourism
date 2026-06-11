@@ -11,3 +11,4 @@ coverage
 # Environment files (keep secrets private)
 .env.local
 .env*.local
+.env.production

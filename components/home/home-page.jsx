@@ -19,7 +19,7 @@ import {
   CheckCircle2,
   MapPin,
 } from "lucide-react";
-import { resolveTripCardImage } from "@/lib/home-trip-cards";
+import { TripCard } from "@/components/trip-card";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -157,51 +157,11 @@ function HorizontalScrollSection({ title, subtitle, description, items, id, bgIm
           </div>
 
           {items.map((item) => (
-            <Link
+            <TripCard
               key={item.id}
-              href={`/trips/${item.slug || item.id}`}
-              className="scroll-card w-[280px] md:w-[320px] h-[400px] md:h-[440px] shrink-0 rounded-2xl overflow-hidden group relative cursor-pointer block"
-            >
-              <img
-                src={resolveTripCardImage(item.image)}
-                alt={item.name}
-                className="w-full h-full object-cover transition duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-300 group-hover:opacity-0" />
-              <div className="absolute bottom-0 left-0 right-0 p-5 transition-opacity duration-300 group-hover:opacity-0">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-400">
-                  {item.tagline}
-                </p>
-                <h3 className="text-2xl font-semibold text-white mt-1">{item.name}</h3>
-                <p className="text-lg font-bold text-white mt-2">{item.price}</p>
-              </div>
-              <div className="absolute inset-0 bg-black/85 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-5">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-400">
-                  {item.tagline}
-                </p>
-                <h3 className="text-2xl font-semibold text-white mt-1">{item.name}</h3>
-                <p className="text-sm leading-relaxed text-zinc-300 mt-3">{item.description}</p>
-                <div className="flex flex-wrap gap-1.5 mt-3">
-                  {(item.highlights || []).map((tag) => (
-                    <span
-                      key={tag}
-                      className="text-[9px] font-medium bg-white/10 text-white px-2 py-1 rounded-full border border-white/20"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/20">
-                  <div>
-                    <p className="text-[10px] text-zinc-400">{item.duration}</p>
-                    <p className="text-xl font-bold text-white">{item.price}</p>
-                  </div>
-                  <span className="bg-white text-zinc-900 text-[10px] font-semibold px-4 py-2 rounded-lg">
-                    View Details →
-                  </span>
-                </div>
-              </div>
-            </Link>
+              item={item}
+              className="scroll-card h-[400px] w-[280px] shrink-0 md:h-[440px] md:w-[320px]"
+            />
           ))}
         </div>
       </div>

@@ -1,11 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHero } from "@/components/home/page-hero";
 import { CtaBand } from "@/components/home/cta-band";
 import { Reveal } from "@/components/home/reveal";
+import { TripsCatalogCard } from "@/components/trips-catalog-card";
 
 export function TripsCatalog({ sections }) {
   return (
@@ -39,58 +38,10 @@ export function TripsCatalog({ sections }) {
             </div>
           </Reveal>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid auto-rows-fr gap-4 md:grid-cols-2 xl:grid-cols-3">
             {section.trips.map((trip, ti) => (
-              <Reveal key={trip.slug} delay={ti * 0.06}>
-                <Link
-                  href={`/trips/${trip.slug}`}
-                  className="group block overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-200 hover:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.15)]"
-                >
-                  <div className="relative h-44 overflow-hidden">
-                    <img
-                      src={trip.image}
-                      alt={trip.name}
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                  </div>
-
-                  <div className="space-y-3 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="text-base font-semibold leading-tight text-zinc-900">
-                          {trip.name}
-                        </h3>
-                        <p className="mt-0.5 text-xs text-zinc-500">{trip.duration}</p>
-                      </div>
-                      <span className="shrink-0 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-[10px] font-semibold text-zinc-700 tabular-nums">
-                        {trip.price}
-                      </span>
-                    </div>
-
-                    <p className="text-xs leading-relaxed text-zinc-600 line-clamp-2">
-                      {trip.summary}
-                    </p>
-
-                    {trip.tags?.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5">
-                        {trip.tags.slice(0, 3).map((tag) => (
-                          <span
-                            key={tag}
-                            className="rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] text-zinc-600"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-1 border-t border-zinc-100 pt-2 text-xs font-semibold text-zinc-900 transition-colors group-hover:text-amber-700">
-                      View Details
-                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                    </div>
-                  </div>
-                </Link>
+              <Reveal key={trip.slug} delay={ti * 0.06} className="h-full">
+                <TripsCatalogCard trip={trip} />
               </Reveal>
             ))}
           </div>

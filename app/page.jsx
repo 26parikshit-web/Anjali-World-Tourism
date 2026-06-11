@@ -25,15 +25,20 @@ export default async function Page() {
     getFeaturedTripsByCategory(FRIENDS_GETAWAY_CATEGORY),
   ]);
 
+  const mapFallback = (item) => ({
+    ...item,
+    images: item.images || [item.image],
+  });
+
   const spiritualJourneys =
     spiritualFeatured.length > 0
       ? spiritualFeatured.map(toHomeTripCard)
-      : fallbackSpiritualJourneys;
+      : fallbackSpiritualJourneys.map(mapFallback);
 
   const friendsGetaway =
     friendsFeatured.length > 0
       ? friendsFeatured.map(toHomeTripCard)
-      : fallbackFriendsGetaway;
+      : fallbackFriendsGetaway.map(mapFallback);
 
   return (
     <HomePage

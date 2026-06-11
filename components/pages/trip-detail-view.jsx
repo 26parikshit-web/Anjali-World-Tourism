@@ -6,6 +6,8 @@ import { ArrowLeft, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContactForm } from "@/components/contact-form";
 import { Reveal } from "@/components/home/reveal";
+import { TripGallery } from "@/components/trip-gallery";
+import { cloudinaryHeroUrl } from "@/lib/cloudinary";
 
 export function TripDetailView({ trip }) {
   const description = trip.description || "";
@@ -25,7 +27,7 @@ export function TripDetailView({ trip }) {
       {/* Hero — image has subtle ken-burns; text is fixed and stable */}
       <section className="relative h-[50vh] overflow-hidden md:h-[60vh]">
         <motion.img
-          src={heroImage}
+          src={cloudinaryHeroUrl(heroImage)}
           alt={trip.name}
           className="optimized-video h-full w-full object-cover"
           initial={{ scale: 1.08 }}
@@ -116,44 +118,7 @@ export function TripDetailView({ trip }) {
 
             {gallery.length > 0 && (
               <Reveal>
-                <section>
-                  <h2 className="mb-4 text-xl font-semibold text-zinc-900">Gallery</h2>
-                  <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-                    {gallery.map((item, i) => (
-                      <div
-                        key={i}
-                        className="group relative aspect-[4/3] cursor-pointer overflow-hidden rounded-xl"
-                      >
-                        {item.type === "video" ? (
-                          <video
-                            src={item.src || item.image_url}
-                            className="h-full w-full object-cover"
-                            muted
-                            loop
-                            playsInline
-                            onMouseEnter={(e) => e.target.play()}
-                            onMouseLeave={(e) => {
-                              e.target.pause();
-                              e.target.currentTime = 0;
-                            }}
-                          />
-                        ) : (
-                          <img
-                            src={item.src || item.image_url}
-                            alt={item.alt || item.title || `Gallery image ${i + 1}`}
-                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                          />
-                        )}
-                        <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/20" />
-                        {item.type === "video" && (
-                          <div className="absolute right-2 top-2 rounded-full bg-black/50 px-2 py-1 text-[9px] text-white">
-                            Video
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </section>
+                <TripGallery items={gallery} />
               </Reveal>
             )}
 

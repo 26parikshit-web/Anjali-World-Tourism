@@ -1,4 +1,5 @@
 import { getTrips, getTripSections } from "@/lib/data-service";
+import { collectTripCardImages } from "@/lib/home-trip-cards";
 import { TripsCatalog } from "@/components/pages/trips-catalog";
 import { buildPageMetadata } from "@/lib/seo";
 
@@ -30,15 +31,19 @@ export default async function TripsPage() {
     description:
       tripSections.find((s) => s.title === category)?.description ||
       `Explore our ${category} packages`,
-    trips: categoryTrips.map((trip) => ({
-      name: trip.name,
-      slug: trip.slug,
-      duration: trip.duration,
-      price: trip.price,
-      image: trip.hero_image || trip.heroImage,
-      summary: trip.short_description || trip.shortDescription,
-      tags: trip.tags || [],
-    })),
+    trips: categoryTrips.map((trip) => {
+      const images = collectTripCardImages(trip);
+      return {
+        name: trip.name,
+        slug: trip.slug,
+        duration: trip.duration,
+        price: trip.price,
+        image: images[0],
+        images,
+        summary: trip.short_description || trip.shortDescription,
+        tags: trip.tags || [],
+      };
+    }),
   }));
 
   return <TripsCatalog sections={sections} />;

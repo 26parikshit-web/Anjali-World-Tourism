@@ -133,5 +133,5 @@ CREATE INDEX IF NOT EXISTS idx_gallery_trip_id ON gallery(trip_id);
 CREATE INDEX IF NOT EXISTS idx_contact_status ON contact_submissions(status);
 CREATE INDEX IF NOT EXISTS idx_contact_created ON contact_submissions(created_at DESC);
 
--- Storage bucket for images (run in Supabase Dashboard > Storage)
--- Create a bucket called 'images' with public access
+-- Storage: run supabase/migrations/trip-media-storage.sql in Supabase Dashboard
+-- Creates public `trip-media` bucket for trip hero images and gallery uploads

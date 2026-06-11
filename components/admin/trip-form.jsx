@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, X, GripVertical } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { revalidateTripsOnServer } from "@/lib/revalidate-trips-client";
 import { pickTripRow } from "@/lib/trip-row";
+import { normalizeGallery } from "@/lib/trip-media";
+import { TripMediaEditor } from "@/components/admin/trip-media-editor";
 
 const categories = [
   "Spiritual Journey",
@@ -56,6 +58,7 @@ export function TripForm({ trip }) {
       difficulty: trip?.difficulty || difficulties[0],
       best_season: trip?.best_season || "",
       hero_image: trip?.hero_image || "",
+      gallery: trip?.gallery || [],
       highlights: trip?.highlights || [],
       itinerary: trip?.itinerary || [],
       inclusions: trip?.inclusions || [],
@@ -143,6 +146,7 @@ export function TripForm({ trip }) {
     try {
       const dataToSave = pickTripRow({
         ...formData,
+        gallery: normalizeGallery(formData.gallery),
         highlights: formData.highlights.filter(Boolean),
         inclusions: formData.inclusions.filter(Boolean),
         exclusions: formData.exclusions.filter(Boolean),
@@ -373,21 +377,6 @@ export function TripForm({ trip }) {
               className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm outline-none focus:border-zinc-400 focus:bg-white"
             />
           </div>
-
-          <div>
-            <label className="block text-xs font-medium text-zinc-700 mb-1.5">
-              Hero Image URL
-            </label>
-            <input
-              type="text"
-              value={formData.hero_image}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, hero_image: e.target.value }))
-              }
-              placeholder="https://..."
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm outline-none focus:border-zinc-400 focus:bg-white"
-            />
-          </div>
         </div>
 
         <div className="flex items-center gap-6 mt-4 pt-4 border-t border-zinc-100">
@@ -417,6 +406,22 @@ export function TripForm({ trip }) {
             <span className="text-sm text-zinc-700">Featured</span>
           </label>
         </div>
+      </div>
+
+      {/* Images & Videos */}
+      <div className="bg-white rounded-xl border border-zinc-200 p-6">
+        <h2 className="text-base font-semibold text-zinc-900 mb-4">Images & Videos</h2>
+        <TripMediaEditor
+          gallery={formData.gallery}
+          heroImage={formData.hero_image}
+          tripSlug={formData.slug}
+          onGalleryChange={(gallery) =>
+            setFormData((prev) => ({ ...prev, gallery }))
+          }
+          onHeroChange={(hero_image) =>
+            setFormData((prev) => ({ ...prev, hero_image }))
+          }
+        />
       </div>
 
       {/* Highlights */}
