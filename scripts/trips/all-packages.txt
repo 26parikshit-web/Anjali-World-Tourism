@@ -75,8 +75,8 @@ Meals: MAP (Breakfast & Dinner)
 
 === TRIP INFORMATION ===
 Duration: 9 Days / 8 Nights
-Price: ₹2,15,000 total for 6 Pax (MAP) | Note: 5% GST extra if invoice required
-Group Size: 6 Pax (1 Room Double Sharing + Extra Mattress)
+Price: ₹2,15,000 total for 6 Person (MAP) | Note: 5% GST extra if invoice required
+Group Size: 6 Person (1 Room Double Sharing + Extra Mattress)
 Difficulty: Moderate (optional treks)
 Best Season: May–June (travel date: 31st May 2026)
 
@@ -380,7 +380,7 @@ Meals: MAP (Breakfast & Dinner)
 Duration: 7 Days / 6 Nights
 Tour Date: 23 March
 Price: ₹81,000 total for 4 Adults + 3 Children (3★, 2 Deluxe Rooms, MAP)
-Group Size: 4+3 Pax
+Group Size: 4+3 Person
 
 === HOTELS ===
 Shimla (2N): The Grand Welcome Shimla
@@ -657,7 +657,7 @@ Meals: MAP (Breakfast & Dinner)
 
 === TRIP INFORMATION ===
 Duration: 7 Days / 6 Nights
-Total Cost: ₹1,15,700 for 2 Pax + 2 Children CNB
+Total Cost: ₹1,15,700 for 2 Person + 2 Children CNB
 Pickup & Drop: Srinagar Airport
 Best Season: April–October
 
@@ -722,7 +722,7 @@ Meals: MAP (Breakfast & Dinner)
 
 === TRIP INFORMATION ===
 Duration: 7 Days / 6 Nights
-Total Cost: ₹1,09,900 for 2 Pax + 2 Children
+Total Cost: ₹1,09,900 for 2 Person + 2 Children
 Pickup & Drop: Dehradun
 Difficulty: Moderate (optional trek)
 
@@ -791,7 +791,7 @@ Meals: MAPI (Breakfast & Dinner)
 
 === TRIP INFORMATION ===
 Duration: 5 Days / 4 Nights
-Standard Price: ₹12,500 per Adult (12 Pax, 6 Rooms Double Sharing, Tempo Traveller)
+Standard Price: ₹12,500 per Adult (12 Person, 6 Rooms Double Sharing, Tempo Traveller)
 Luxury Price: ₹18,500 per Adult (6 Rooms Double Sharing, Tempo Traveller)
 Pickup & Drop: Srinagar Airport / Railway Station
 
@@ -865,8 +865,8 @@ Hotels: Standard or Deluxe (see below)
 
 === TRIP INFORMATION ===
 Duration: 6 Days / 5 Nights
-Standard Price: ₹26,700 per Adult (2 Pax)
-Deluxe Price: ₹28,900 per Adult (2 Pax)
+Standard Price: ₹26,700 per Adult (2 Person)
+Deluxe Price: ₹28,900 per Adult (2 Person)
 Pickup from: Haridwar (8:30 AM)
 Best Season: April / May / June 2026
 Helicopter: Available (pre-booking recommended)

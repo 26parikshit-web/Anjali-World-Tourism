@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { Fragment, useRef } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -70,8 +70,8 @@ const whyUs = [
 ];
 
 const headlineLines = [
-  "Journeys that feel editorial on screen,",
-  "deeply human in planning.",
+  "Where meaningful journeys",
+  "become lifelong memories.",
 ];
 
 const wordVariants = {
@@ -131,7 +131,11 @@ function HorizontalScrollSection({ title, subtitle, description, items, id, bgIm
             <source src="/videos/spiritual-bg.mp4" type="video/mp4" />
           </video>
         ) : (
-          <img src={bgImage} alt="" className="w-full h-full object-cover" />
+          <img
+            src={bgImage}
+            alt="Himalayan mountain landscape for friends getaway travel packages in India"
+            className="w-full h-full object-cover"
+          />
         )}
         <div className="absolute inset-0 bg-black/50" />
       </div>
@@ -151,7 +155,7 @@ function HorizontalScrollSection({ title, subtitle, description, items, id, bgIm
             <p className="mt-3 text-sm leading-relaxed text-zinc-300">{description}</p>
             <Link href="/trips">
               <Button className="mt-4 bg-white text-zinc-900 hover:bg-zinc-100 text-xs font-semibold px-4 py-2 rounded-lg">
-                View All Trips
+                {id === "spiritual" ? "See pilgrimage packages" : "Explore group getaways"}
               </Button>
             </Link>
           </div>
@@ -198,21 +202,27 @@ export function HomePage({ spiritualJourneys, friendsGetaway }) {
             transition={{ staggerChildren: 0.05, delayChildren: 0.25 }}
             className="text-4xl sm:text-5xl md:text-6xl font-semibold text-white leading-[1.1] tracking-tight"
           >
-            {headlineLines.map((line, li) => (
-              <span key={li} className="block overflow-hidden">
-                {line.split(" ").map((wordText, wi) => (
-                  <span key={wi} className="inline-block overflow-hidden align-bottom">
-                    <motion.span
-                      variants={wordVariants}
-                      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                      className="inline-block pr-[0.25em]"
-                    >
-                      {wordText}
-                    </motion.span>
-                  </span>
-                ))}
-              </span>
-            ))}
+            {headlineLines.map((line, li) => {
+              const words = line.split(" ");
+              return (
+                <span key={li} className="block overflow-hidden">
+                  {words.map((wordText, wi) => (
+                    <Fragment key={wi}>
+                      <span className="inline-block overflow-hidden align-bottom">
+                        <motion.span
+                          variants={wordVariants}
+                          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                          className="inline-block"
+                        >
+                          {wordText}
+                        </motion.span>
+                      </span>
+                      {wi < words.length - 1 ? " " : null}
+                    </Fragment>
+                  ))}
+                </span>
+              );
+            })}
           </motion.h1>
 
           <motion.p
@@ -221,9 +231,9 @@ export function HomePage({ spiritualJourneys, friendsGetaway }) {
             transition={{ duration: 0.7, delay: 0.6 }}
             className="mt-6 text-base sm:text-lg text-zinc-300 max-w-2xl mx-auto leading-relaxed"
           >
-            We craft spiritual pilgrimages, friend getaways, family holidays, and honeymoon
-            packages with hands-on support — no bots, no automation, just real people helping you
-            travel better.
+            Anjali World Tourism crafts editorial-quality itineraries for spiritual
+            pilgrimages, friend getaways, family holidays, and honeymoons across India — with
+            hands-on planners, not algorithms.
           </motion.p>
 
           <motion.div
@@ -234,7 +244,7 @@ export function HomePage({ spiritualJourneys, friendsGetaway }) {
           >
             <Link href="/trips">
               <Button className="group bg-white text-zinc-900 hover:bg-zinc-100 text-sm font-semibold px-6 py-3 rounded-xl">
-                Explore Trips
+                Explore India packages
                 <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Button>
             </Link>
@@ -293,8 +303,8 @@ export function HomePage({ spiritualJourneys, friendsGetaway }) {
 
       <HorizontalScrollSection
         id="spiritual"
-        title="Spiritual Journeys"
-        subtitle="Pilgrimage Routes"
+        title="Sacred Pilgrimage Routes"
+        subtitle="Spiritual Journeys"
         description="Slow, reverent, logistics-heavy routes designed for darshan, family comfort, and trusted pacing."
         items={spiritualJourneys}
         bgVideo="/videos/spiritual-bg.mp4"
@@ -302,8 +312,8 @@ export function HomePage({ spiritualJourneys, friendsGetaway }) {
 
       <HorizontalScrollSection
         id="getaway"
-        title="Friends Getaway"
-        subtitle="Group Adventures"
+        title="Group Adventure Escapes"
+        subtitle="Friends Getaway"
         description="Mood-led escapes for friend groups who want scenery, stories, and high-energy shared memories."
         items={friendsGetaway}
         bgImage="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2000&q=80"
@@ -347,6 +357,69 @@ export function HomePage({ spiritualJourneys, friendsGetaway }) {
         </div>
       </section>
 
+      <section className="border-t border-zinc-200 bg-zinc-50 py-20 sm:py-24">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+          <Reveal>
+            <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900">
+              Handcrafted travel across India
+            </h2>
+            <div className="mt-6 space-y-4 text-base leading-relaxed text-zinc-600">
+              <p>
+                Anjali World Tourism is a manual travel planning desk based in India, built for
+                travelers who want curated routes instead of generic package listings. Whether you
+                are planning a Char Dham Yatra, a Kedarnath pilgrimage, a Kashmir family holiday, or
+                a friends getaway to Spiti or Goa, our planners shape the itinerary around your
+                dates, comfort level, and budget — not a one-size-fits-all template.
+              </p>
+              <p>
+                Spiritual journeys are our foundation. We understand temple timings, helicopter
+                windows, senior-friendly pacing, and the logistics that make or break a pilgrimage.
+                For family time and honeymoon packages, we balance scenic stays with practical
+                transfers. For group adventures, we focus on routes that feel alive — mountain
+                passes, coastal drives, and shared experiences worth remembering.
+              </p>
+              <p>
+                Every package on this site is sequenced by a real person who has studied the route,
+                verified stays, and thought through what happens when weather shifts or plans change.
+                You get 24/7 manual support before departure and on the road, transparent pricing
+                without hidden markups, and honest guidance when a deluxe upgrade or simpler option
+                makes more sense.
+              </p>
+              <p>
+                From Uttarakhand and Himachal to Kashmir, South India, Sikkim, and international
+                options like Sri Lanka, we cover curated travel experiences across India and nearby
+                destinations. Browse our trip catalog, read traveler reviews, or book a short planning
+                call — and we will help you turn your next journey into something that feels
+                editorial on screen and deeply human in execution.
+              </p>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/trips">
+                <Button className="bg-zinc-900 text-white hover:bg-zinc-800 text-sm font-semibold px-5 py-2.5 rounded-xl">
+                  View trip packages
+                </Button>
+              </Link>
+              <Link href="/reviews">
+                <Button
+                  variant="outline"
+                  className="border-zinc-300 text-zinc-800 hover:bg-zinc-100 text-sm font-semibold px-5 py-2.5 rounded-xl"
+                >
+                  Read traveler stories
+                </Button>
+              </Link>
+              <Link href="/contact">
+                <Button
+                  variant="outline"
+                  className="border-zinc-300 text-zinc-800 hover:bg-zinc-100 text-sm font-semibold px-5 py-2.5 rounded-xl"
+                >
+                  Contact our planners
+                </Button>
+              </Link>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       <section className="relative overflow-hidden bg-zinc-950 py-20 sm:py-28">
         <div className="absolute inset-0 overflow-hidden mix-blend-screen pointer-events-none">
           <div className="aurora-blob aurora-a left-[5%] top-[-30%] h-[40vw] w-[40vw] bg-amber-500/30" />
@@ -364,7 +437,7 @@ export function HomePage({ spiritualJourneys, friendsGetaway }) {
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link href="/trips">
                 <Button className="group bg-white text-zinc-900 hover:bg-zinc-100 text-sm font-semibold px-6 py-3 rounded-xl">
-                  Browse Trips
+                  Start planning today
                   <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Button>
               </Link>
@@ -393,8 +466,8 @@ export function HomePage({ spiritualJourneys, friendsGetaway }) {
               Anjali World Tourism
             </p>
             <p className="mt-2 max-w-md text-zinc-500">
-              Manual travel planning desk for spiritual journeys, friend getaways, family holidays,
-              and honeymoon packages.
+              Curated itineraries and on-call planners for pilgrimages, group trips, family
+              holidays, and honeymoons across India.
             </p>
           </div>
           <div className="flex flex-wrap gap-4">

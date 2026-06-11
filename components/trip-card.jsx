@@ -55,9 +55,9 @@ export function TripCard({ item, className = "" }) {
         >
           {tagline}
         </p>
-        <h3 className="mt-1 truncate text-2xl font-semibold text-white" title={item.name}>
+        <p className="mt-1 truncate text-2xl font-semibold text-white" title={item.name}>
           {name}
-        </h3>
+        </p>
         <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-zinc-300" title={item.description}>
           {description}
         </p>

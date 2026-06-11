@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -40,7 +41,15 @@ export function SiteChrome({ children }) {
         )}
       >
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2.5">
+            <Image
+              src="/logo.png"
+              alt="Anjali World Tourism logo"
+              width={32}
+              height={32}
+              className="h-8 w-8 rounded-lg"
+              priority
+            />
             <span
               className={cn(
                 "text-sm font-bold tracking-[0.12em] transition-colors",
@@ -193,7 +202,8 @@ export function SiteChrome({ children }) {
                 Anjali World Tourism
               </p>
               <p className="mt-2 max-w-md text-zinc-500">
-                Manual travel planning desk for spiritual journeys, friend getaways, family holidays, and honeymoon packages.
+                Curated itineraries and on-call planners for pilgrimages, group trips, family
+                holidays, and honeymoons across India.
               </p>
             </div>
 
