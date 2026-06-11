@@ -303,17 +303,17 @@ export function HomePage({ spiritualJourneys, friendsGetaway }) {
 
       <HorizontalScrollSection
         id="spiritual"
-        title="Sacred Pilgrimage Routes"
         subtitle="Spiritual Journeys"
+        title="Sacred Pilgrimage Routes"
         description="Slow, reverent, logistics-heavy routes designed for darshan, family comfort, and trusted pacing."
         items={spiritualJourneys}
-        bgVideo="/videos/spiritual-bg.mp4"
+        bgVideo
       />
 
       <HorizontalScrollSection
         id="getaway"
-        title="Group Adventure Escapes"
         subtitle="Friends Getaway"
+        title="Group Adventure Escapes"
         description="Mood-led escapes for friend groups who want scenery, stories, and high-energy shared memories."
         items={friendsGetaway}
         bgImage="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2000&q=80"

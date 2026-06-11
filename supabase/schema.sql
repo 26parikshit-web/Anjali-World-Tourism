@@ -50,6 +50,8 @@ CREATE TABLE IF NOT EXISTS gallery (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   title TEXT,
   image_url TEXT NOT NULL,
+  cloudinary_public_id TEXT,
+  resource_type TEXT DEFAULT 'image',
   category TEXT,
   trip_id UUID REFERENCES trips(id) ON DELETE SET NULL,
   display_order INTEGER DEFAULT 0,

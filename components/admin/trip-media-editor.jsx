@@ -1,12 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { uploadTripMedia } from "@/lib/upload-trip-media";
-import {
-  cloudinaryGalleryUrl,
-  cloudinaryHeroUrl,
-  cloudinaryVideoUrl,
-} from "@/lib/cloudinary";
+import { uploadAdminMedia, deleteAdminMedia } from "@/lib/admin-media";
+import { isCloudinaryUrl, cloudinaryGalleryUrl, cloudinaryHeroUrl, cloudinaryVideoUrl } from "@/lib/cloudinary";
 import {
   detectMediaType,
   maxUploadBytes,
@@ -65,20 +61,33 @@ export function TripMediaEditor({
     setUploadTarget(target === "hero" ? "hero" : index ?? "new");
 
     try {
-      const publicUrl = await uploadTripMedia(file, {
+      const previousHero = heroImage;
+      const uploaded = await uploadAdminMedia(file, {
+        scope: "trip",
         tripSlug,
         folder: target === "hero" ? "hero" : "gallery",
       });
 
+      const mediaItem = {
+        type: uploaded.type || mediaType,
+        src: uploaded.url,
+        alt: file.name.replace(/\.[^.]+$/, ""),
+        publicId: uploaded.publicId,
+      };
+
       if (target === "hero") {
-        onHeroChange?.(publicUrl);
+        onHeroChange?.(uploaded.url);
+        if (
+          previousHero &&
+          isCloudinaryUrl(previousHero) &&
+          previousHero !== uploaded.url
+        ) {
+          deleteAdminMedia({ url: previousHero }).catch(() => {});
+        }
       } else if (index !== null) {
-        updateItem(index, { src: publicUrl, type: mediaType });
+        updateItem(index, mediaItem);
       } else {
-        onGalleryChange?.([
-          ...items,
-          { type: mediaType, src: publicUrl, alt: file.name.replace(/\.[^.]+$/, "") },
-        ]);
+        onGalleryChange?.([...items, mediaItem]);
       }
     } catch (err) {
       setError(err.message || "Upload failed. Check Cloudinary env vars.");
@@ -93,7 +102,20 @@ export function TripMediaEditor({
     onGalleryChange?.(next);
   };
 
-  const removeItem = (index) => {
+  const removeItem = async (index) => {
+    const item = items[index];
+    if (item && isCloudinaryUrl(item.src)) {
+      try {
+        await deleteAdminMedia({
+          url: item.src,
+          publicId: item.publicId,
+          resourceType: item.type === "video" ? "video" : "image",
+        });
+      } catch (err) {
+        setError(err.message || "Failed to delete from Cloudinary");
+        return;
+      }
+    }
     onGalleryChange?.(items.filter((_, i) => i !== index));
   };
 
@@ -190,12 +212,29 @@ export function TripMediaEditor({
           className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-zinc-400"
         />
         {heroImage && (
-          <div className="mt-3 aspect-[21/9] overflow-hidden rounded-xl border border-zinc-200">
+          <div className="mt-3 aspect-[21/9] overflow-hidden rounded-xl border border-zinc-200 relative">
             <img
               src={cloudinaryHeroUrl(heroImage)}
               alt="Hero preview"
               className="h-full w-full object-cover"
             />
+            <button
+              type="button"
+              onClick={async () => {
+                if (isCloudinaryUrl(heroImage)) {
+                  try {
+                    await deleteAdminMedia({ url: heroImage });
+                  } catch (err) {
+                    setError(err.message || "Failed to delete hero from Cloudinary");
+                    return;
+                  }
+                }
+                onHeroChange?.("");
+              }}
+              className="absolute right-2 top-2 rounded-lg bg-white/90 px-2 py-1 text-xs font-medium text-red-600 shadow hover:bg-white"
+            >
+              Remove
+            </button>
           </div>
         )}
       </div>

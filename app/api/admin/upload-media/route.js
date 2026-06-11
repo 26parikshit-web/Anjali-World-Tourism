@@ -36,8 +36,10 @@ export async function POST(request) {
 
   const formData = await request.formData();
   const file = formData.get("file");
+  const scope = formData.get("scope") === "site-gallery" ? "site-gallery" : "trip";
   const tripSlug = sanitizeSlug(formData.get("tripSlug"));
-  const folder = formData.get("folder") === "hero" ? "hero" : "gallery";
+  const tripFolder = formData.get("folder") === "hero" ? "hero" : "gallery";
+  const category = sanitizeSlug(formData.get("category") || "general");
 
   if (!file || typeof file === "string") {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -67,11 +69,15 @@ export async function POST(request) {
   try {
     const buffer = Buffer.from(await file.arrayBuffer());
     const cld = getCloudinary();
+    const uploadFolder =
+      scope === "site-gallery"
+        ? `anjali-gallery/${category}`
+        : `anjali-trips/${tripSlug}/${tripFolder}`;
 
     const result = await new Promise((resolve, reject) => {
       const stream = cld.uploader.upload_stream(
         {
-          folder: `anjali-trips/${tripSlug}/${folder}`,
+          folder: uploadFolder,
           resource_type: isVideo ? "video" : "image",
           use_filename: true,
           unique_filename: true,
