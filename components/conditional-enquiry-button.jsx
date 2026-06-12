@@ -5,11 +5,11 @@ import { EnquiryButton } from "./enquiry-button";
 
 export function ConditionalEnquiryButton() {
   const pathname = usePathname();
-  
-  // Hide chatbot on admin pages
-  if (pathname.startsWith('/admin')) {
+  const isTripDetail = /^\/trips\/[^/]+$/.test(pathname);
+
+  if (pathname.startsWith("/admin")) {
     return null;
   }
 
-  return <EnquiryButton />;
+  return <EnquiryButton hideOnMobile={isTripDetail} />;
 }

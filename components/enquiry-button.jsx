@@ -4,7 +4,7 @@ import { Plane } from "lucide-react";
 import { EnquiryChatbot } from "./enquiry-chatbot";
 import { useChatbot } from "@/contexts/chatbot-context";
 
-export function EnquiryButton() {
+export function EnquiryButton({ hideOnMobile = false }) {
   const { isOpen, openChatbot, closeChatbot } = useChatbot();
 
   return (
@@ -12,7 +12,7 @@ export function EnquiryButton() {
       {/* Floating Button */}
       <button
         onClick={openChatbot}
-        className="fixed bottom-6 right-6 z-40 group"
+        className={`fixed bottom-6 right-6 z-40 group${hideOnMobile ? " hidden md:block" : ""}`}
         aria-label="Open enquiry chat"
       >
         {/* Glow effect */}

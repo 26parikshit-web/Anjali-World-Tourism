@@ -27,7 +27,7 @@ export function SiteChrome({ children }) {
     <div
       className={cn(
         "relative min-h-screen text-zinc-900",
-        isHomePage ? "bg-white" : "bg-zinc-50"
+        isHomePage ? "bg-white" : "bg-amber-50/40 md:bg-zinc-50"
       )}
     >
       {!isHomePage && <PageBackground />}
@@ -173,14 +173,14 @@ export function SiteChrome({ children }) {
 
                 {/* Plan your Trip Button in Sidebar */}
                 <div className="mt-6 pt-6 border-t border-zinc-200">
-                  <Button 
+                  <Button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
                       openChatbot();
                     }}
                     variant="default"
                     size="default"
-                    className="w-full font-semibold gap-2"
+                    className="w-full gap-2 bg-zinc-900 font-semibold text-white hover:bg-zinc-800"
                   >
                     <Plane className="h-4 w-4" />
                     Plan Your Trip
@@ -192,10 +192,10 @@ export function SiteChrome({ children }) {
         </>
       )}
 
-      <main className="relative z-10">{children}</main>
+      <main className="relative z-10 overflow-x-hidden">{children}</main>
 
       {!isHomePage && (
-        <footer className="relative z-10 border-t border-zinc-200/80 bg-white/60 backdrop-blur-sm">
+        <footer className="relative z-0 border-t border-zinc-200/80 bg-white/60 backdrop-blur-sm">
           <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-8 text-xs text-zinc-500 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
             <div>
               <p className="font-semibold uppercase tracking-[0.15em] text-zinc-900">

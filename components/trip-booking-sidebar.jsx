@@ -35,23 +35,23 @@ export function TripBookingSidebar({ trip, departureDate, onDepartureChange, raz
 
   return (
     <>
-      <div className="space-y-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg">
+      <div className="hidden w-full min-w-0 max-w-full space-y-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg lg:block">
         {/* Price header */}
-        <div className="relative overflow-hidden bg-zinc-900 px-6 py-5 text-white">
-          <Plane className="absolute -right-2 -top-2 h-20 w-20 rotate-12 text-white/10" />
+        <div className="relative overflow-hidden bg-zinc-900 px-4 py-4 text-white sm:px-6 sm:py-5">
+          <Plane className="absolute -right-2 -top-2 h-16 w-16 rotate-12 text-white/10 sm:h-20 sm:w-20" />
           <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
             Starting from
           </p>
-          <p className="mt-1 text-3xl font-bold tabular-nums">
+          <p className="mt-1 text-2xl font-bold tabular-nums sm:text-3xl">
             {trip.price}
-            <span className="ml-1 text-base font-medium text-zinc-400">/person</span>
+            <span className="ml-1 text-sm font-medium text-zinc-400 sm:text-base">/person</span>
           </p>
         </div>
 
-        <div className="space-y-5 p-6">
+        <div className="space-y-4 p-4 sm:space-y-5 sm:p-6">
           {/* Departure dates */}
-          <div className="rounded-xl border border-zinc-200 p-4">
-            <div className="mb-3 flex items-center justify-between gap-2">
+          <div className="rounded-xl border border-zinc-200 p-3.5 sm:p-4">
+            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h3 className="text-sm font-semibold text-zinc-900">Choose your Departure Dates</h3>
               <button
                 type="button"
@@ -63,7 +63,8 @@ export function TripBookingSidebar({ trip, departureDate, onDepartureChange, raz
               </button>
             </div>
 
-            <div className="flex gap-2 overflow-x-auto pb-1">
+            <div className="max-w-full overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
+              <div className="flex w-max gap-2 pb-1">
               {departureDates.map((date) => {
                 const pill = formatDeparturePill(date);
                 const isSelected =
@@ -87,6 +88,7 @@ export function TripBookingSidebar({ trip, departureDate, onDepartureChange, raz
                   </button>
                 );
               })}
+              </div>
             </div>
           </div>
 
@@ -125,7 +127,7 @@ export function TripBookingSidebar({ trip, departureDate, onDepartureChange, raz
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
               <Button
                 variant="outline"
-                className="w-full rounded-xl border-zinc-300 py-4 text-sm font-semibold text-zinc-900 hover:bg-zinc-50"
+                className="w-full rounded-xl border-zinc-300 py-3.5 text-sm font-semibold text-zinc-900 hover:bg-zinc-50 sm:py-4"
               >
                 <MessageCircle className="mr-2 h-4 w-4 text-emerald-500" />
                 Chat with an Expert
@@ -147,6 +149,42 @@ export function TripBookingSidebar({ trip, departureDate, onDepartureChange, raz
                   Verified Operator
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-50 overflow-hidden rounded-t-2xl border border-white/10 border-b-0 bg-gradient-to-t from-zinc-950/98 via-zinc-900/95 to-zinc-900/90 shadow-[0_-12px_40px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl lg:hidden">
+        <div className="px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="mx-auto w-full max-w-lg">
+            <div className="mb-2.5">
+              <p className="text-base font-bold tabular-nums text-white">
+                {trip.price}
+                <span className="text-sm font-medium text-zinc-400">/ person</span>
+              </p>
+              <p className="mt-0.5 text-[10px] text-zinc-400">+5% GST · taxes as applicable</p>
+            </div>
+            <div className="flex items-stretch gap-2">
+              <Button
+                onClick={() => setBookingOpen(true)}
+                className="h-10 flex-1 rounded-xl bg-white text-sm font-semibold text-zinc-900 hover:bg-zinc-100"
+              >
+                Book Now
+              </Button>
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0"
+                aria-label="Chat with an Expert on WhatsApp"
+              >
+                <Button
+                  variant="outline"
+                  className="h-10 w-11 rounded-xl border-white/20 bg-white/10 px-0 text-emerald-400 backdrop-blur-sm hover:bg-white/20"
+                >
+                  <MessageCircle className="h-5 w-5" />
+                </Button>
+              </a>
             </div>
           </div>
         </div>
