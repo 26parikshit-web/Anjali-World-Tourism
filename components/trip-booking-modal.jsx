@@ -258,7 +258,7 @@ export function TripBookingModal({ trip, departureDate, open, onClose, razorpayE
             </div>
             <h2 className="text-xl font-semibold text-zinc-900">All set!</h2>
             <p className="mt-2 text-sm text-zinc-600">{successMessage}</p>
-            <Button onClick={onClose} className="mt-6 rounded-xl bg-zinc-900 hover:bg-zinc-800">
+            <Button onClick={onClose} className="mt-6 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white">
               Close
             </Button>
           </div>
