@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getTripBySlug, getTripSlugs } from "@/lib/data-service";
+import { getFeatureFlags } from "@/lib/feature-flags";
 import { TripDetailView } from "@/components/pages/trip-detail-view";
 import { JsonLd } from "@/components/seo/json-ld";
 import { absoluteUrl, buildPageMetadata } from "@/lib/seo";
@@ -44,7 +45,7 @@ export async function generateMetadata({ params }) {
 
 export default async function TripDetailPage({ params }) {
   const { slug } = await params;
-  const trip = await getTripBySlug(slug);
+  const [trip, featureFlags] = await Promise.all([getTripBySlug(slug), getFeatureFlags()]);
 
   if (!trip) {
     notFound();
@@ -77,7 +78,7 @@ export default async function TripDetailPage({ params }) {
   return (
     <>
       <JsonLd data={tripJsonLd} />
-      <TripDetailView trip={trip} />
+      <TripDetailView trip={trip} featureFlags={featureFlags} />
     </>
   );
 }

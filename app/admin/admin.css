@@ -1,0 +1,74 @@
+/* Admin panel scoped styles */
+.admin-panel {
+  --admin-sidebar-width: 16rem;
+  min-height: 100vh;
+  background-color: #fafafa;
+  color: #18181b;
+  font-family: Inter, "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+}
+
+.admin-panel a {
+  text-decoration: none;
+}
+
+.admin-auth {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #fafafa 0%, #f4f4f5 100%);
+  padding: 1.5rem;
+}
+
+.admin-main {
+  min-height: 100vh;
+  padding-top: 4rem;
+}
+
+@media (min-width: 1024px) {
+  .admin-main {
+    margin-left: var(--admin-sidebar-width);
+    padding-top: 0;
+  }
+}
+
+.admin-content {
+  padding: 1rem;
+  max-width: 80rem;
+}
+
+@media (min-width: 1024px) {
+  .admin-content {
+    padding: 2rem;
+  }
+}
+
+.admin-card {
+  background: #fff;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.admin-input {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid #e4e4e7;
+  background: #fafafa;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #18181b;
+  outline: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.admin-input:focus {
+  border-color: #a1a1aa;
+  background: #fff;
+}
+
+.admin-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -12,6 +12,7 @@ import {
   Mail,
   LogOut,
   Menu,
+  Settings,
   X,
 } from "lucide-react";
 import { useState } from "react";
@@ -23,6 +24,7 @@ const navItems = [
   { href: "/admin/gallery", label: "Gallery", icon: Image },
   { href: "/admin/enquiries", label: "Enquiries", icon: Mail },
   { href: "/admin/contacts", label: "Contacts", icon: MessageSquare },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export function AdminSidebar({ user }) {
@@ -57,9 +59,9 @@ export function AdminSidebar({ user }) {
               key={item.href}
               href={item.href}
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition ${
+              className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition ${
                 isActive
-                  ? "bg-zinc-900 !text-white"
+                  ? "bg-zinc-900 text-white shadow-sm"
                   : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
               }`}
             >
@@ -108,7 +110,7 @@ export function AdminSidebar({ user }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-white border-r border-zinc-200 flex flex-col z-50 transition-transform lg:translate-x-0 ${
+        className={`fixed top-0 left-0 z-50 flex h-full w-64 flex-col border-r border-zinc-200 bg-white shadow-sm transition-transform lg:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
