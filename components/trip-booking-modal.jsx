@@ -11,6 +11,10 @@ import {
   parsePriceToRupees,
 } from "@/lib/trip-booking";
 import { contactDetails } from "@/lib/site-data";
+import {
+  sanitizeBookingContact,
+  validateBookingDetails,
+} from "@/lib/form-validation";
 
 function loadRazorpayScript() {
   return new Promise((resolve) => {
@@ -65,13 +69,16 @@ export function TripBookingModal({ trip, departureDate, open, onClose, razorpayE
   if (!open) return null;
 
   const validateDetails = () => {
-    if (!name.trim() || !email.trim() || !phone.trim()) {
-      setError("Please fill in your name, email, and phone number.");
+    const result = validateBookingDetails({ name, email, phone });
+    if (!result.valid) {
+      setError(result.message);
       return false;
     }
     setError("");
     return true;
   };
+
+  const getSanitizedContact = () => sanitizeBookingContact({ name, email, phone });
 
   const handleBookNow = () => {
     if (validateDetails()) {
@@ -79,7 +86,7 @@ export function TripBookingModal({ trip, departureDate, open, onClose, razorpayE
     }
   };
 
-  const buildBookingNotes = () => {
+  const buildBookingNotes = (phoneNumber = phone) => {
     const lines = [
       `Trip: ${trip.name}`,
       `Duration: ${trip.duration || "N/A"}`,
@@ -90,13 +97,14 @@ export function TripBookingModal({ trip, departureDate, open, onClose, razorpayE
       lines.push(`Departure: ${formatFullDate(departureDate)}`);
       if (endDate) lines.push(`Return: ${formatFullDate(endDate)}`);
     }
-    lines.push(`Phone: ${phone.trim()}`);
+    lines.push(`Phone: ${phoneNumber}`);
     return lines.join("\n");
   };
 
   const handleSendEnquiry = async () => {
     if (!validateDetails()) return;
 
+    const contact = getSanitizedContact();
     setLoading(true);
     setError("");
 
@@ -105,9 +113,9 @@ export function TripBookingModal({ trip, departureDate, open, onClose, razorpayE
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: name.trim(),
-          email: email.trim(),
-          phone: phone.trim(),
+          name: contact.name,
+          email: contact.email,
+          phone: contact.phone,
           place: trip.name,
           passengers: String(pax),
           duration: departureDate ? formatFullDate(departureDate) : trip.duration,
@@ -134,8 +142,9 @@ export function TripBookingModal({ trip, departureDate, open, onClose, razorpayE
   const handleBookMeeting = () => {
     if (!validateDetails()) return;
 
-    const notes = buildBookingNotes();
-    const meetingURL = `${contactDetails.calLink}?name=${encodeURIComponent(name.trim())}&email=${encodeURIComponent(email.trim())}&notes=${encodeURIComponent(notes)}`;
+    const contact = getSanitizedContact();
+    const notes = buildBookingNotes(contact.phone);
+    const meetingURL = `${contactDetails.calLink}?name=${encodeURIComponent(contact.name)}&email=${encodeURIComponent(contact.email)}&notes=${encodeURIComponent(notes)}`;
     window.open(meetingURL, "_blank", "noopener,noreferrer");
 
     setSuccessMessage(
@@ -147,6 +156,7 @@ export function TripBookingModal({ trip, departureDate, open, onClose, razorpayE
   const handlePayNow = async () => {
     if (!validateDetails()) return;
 
+    const contact = getSanitizedContact();
     setLoading(true);
     setError("");
 
@@ -164,9 +174,9 @@ export function TripBookingModal({ trip, departureDate, open, onClose, razorpayE
           tripName: trip.name,
           amount: total,
           pax,
-          name: name.trim(),
-          email: email.trim(),
-          phone: phone.trim(),
+          name: contact.name,
+          email: contact.email,
+          phone: contact.phone,
           departureDate: departureDate?.toISOString(),
         }),
       });
@@ -183,7 +193,7 @@ export function TripBookingModal({ trip, departureDate, open, onClose, razorpayE
         name: "Anjali World Tourism",
         description: `${trip.name} — ${pax} traveler${pax > 1 ? "s" : ""}`,
         order_id: orderData.orderId,
-        prefill: { name, email, contact: phone },
+        prefill: { name: contact.name, email: contact.email, contact: contact.phone },
         theme: { color: "#18181b" },
         handler: async (response) => {
           const verifyRes = await fetch("/api/payments/verify", {
@@ -194,9 +204,9 @@ export function TripBookingModal({ trip, departureDate, open, onClose, razorpayE
               tripSlug: trip.slug,
               tripName: trip.name,
               pax,
-              name: name.trim(),
-              email: email.trim(),
-              phone: phone.trim(),
+              name: contact.name,
+              email: contact.email,
+              phone: contact.phone,
               departureDate: departureDate?.toISOString(),
               amount: total,
             }),
@@ -370,6 +380,8 @@ export function TripBookingModal({ trip, departureDate, open, onClose, razorpayE
                         placeholder="Full Name"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
+                        maxLength={100}
+                        autoComplete="name"
                         className="w-full rounded-xl border border-zinc-200 py-2.5 pl-10 pr-4 text-base outline-none transition-colors focus:border-zinc-900 sm:py-3 sm:text-sm"
                       />
                     </span>
@@ -383,6 +395,9 @@ export function TripBookingModal({ trip, departureDate, open, onClose, razorpayE
                         placeholder="Email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        maxLength={254}
+                        autoComplete="email"
+                        inputMode="email"
                         className="w-full rounded-xl border border-zinc-200 py-2.5 pl-10 pr-4 text-base outline-none transition-colors focus:border-zinc-900 sm:py-3 sm:text-sm"
                       />
                     </span>
@@ -396,6 +411,9 @@ export function TripBookingModal({ trip, departureDate, open, onClose, razorpayE
                         placeholder="Phone Number"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
+                        maxLength={15}
+                        autoComplete="tel"
+                        inputMode="tel"
                         className="w-full rounded-xl border border-zinc-200 py-2.5 pl-10 pr-4 text-base outline-none transition-colors focus:border-zinc-900 sm:py-3 sm:text-sm"
                       />
                     </span>

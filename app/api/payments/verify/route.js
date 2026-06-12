@@ -3,6 +3,10 @@ import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import { FEATURE_FLAG_KEYS, isFeatureEnabled } from "@/lib/feature-flags";
+import {
+  sanitizeBookingContact,
+  validateBookingDetails,
+} from "@/lib/form-validation";
 
 const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY
   ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -61,6 +65,16 @@ export async function POST(request) {
       );
     }
 
+    const validation = validateBookingDetails({ name, email, phone });
+    if (!validation.valid) {
+      return NextResponse.json(
+        { success: false, message: validation.message },
+        { status: 400 }
+      );
+    }
+
+    const contact = sanitizeBookingContact({ name, email, phone });
+
     let bookingId = null;
 
     if (supabase) {
@@ -70,9 +84,9 @@ export async function POST(request) {
           {
             trip_slug: tripSlug,
             trip_name: tripName,
-            customer_name: name,
-            customer_email: email,
-            customer_phone: phone,
+            customer_name: contact.name,
+            customer_email: contact.email,
+            customer_phone: contact.phone,
             pax: pax || 1,
             amount: amount,
             departure_date: departureDate || null,
@@ -96,13 +110,13 @@ export async function POST(request) {
         await resend.emails.send({
           from: process.env.ENQUIRY_EMAIL_FROM || "onboarding@resend.dev",
           to: process.env.ENQUIRY_EMAIL_TO,
-          subject: `New Booking: ${tripName} — ${name}`,
+          subject: `New Booking: ${tripName} — ${contact.name}`,
           html: `
             <h2>New Trip Booking</h2>
             <p><strong>Trip:</strong> ${tripName}</p>
-            <p><strong>Customer:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Phone:</strong> ${phone}</p>
+            <p><strong>Customer:</strong> ${contact.name}</p>
+            <p><strong>Email:</strong> ${contact.email}</p>
+            <p><strong>Phone:</strong> ${contact.phone}</p>
             <p><strong>Travelers:</strong> ${pax}</p>
             <p><strong>Amount:</strong> ₹${amount}</p>
             <p><strong>Departure:</strong> ${departureDate || "Not specified"}</p>

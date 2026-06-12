@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { X, Send, Calendar, User, Mail, Phone, Users, MapPin, IndianRupee, Plane, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
+import { validateEnquiryField } from "@/lib/form-validation";
 
 const questions = [
   {
@@ -107,10 +108,16 @@ export function EnquiryChatbot({ isOpen, onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isTyping) return;
 
     const currentQuestion = questions[currentStep];
     const value = inputValue.trim();
+
+    const validation = validateEnquiryField(currentQuestion.id, value);
+    if (!validation.valid) {
+      addBotMessage(validation.message);
+      return;
+    }
 
     addUserMessage(value);
     setFormData((prev) => ({ ...prev, [currentQuestion.id]: value }));

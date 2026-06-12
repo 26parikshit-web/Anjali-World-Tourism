@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import { FEATURE_FLAG_KEYS, isFeatureEnabled } from "@/lib/feature-flags";
+import {
+  sanitizeBookingContact,
+  validateBookingDetails,
+} from "@/lib/form-validation";
 
 function getRazorpay() {
   const keyId = process.env.RAZORPAY_KEY_ID;
@@ -21,12 +25,22 @@ export async function POST(request) {
     const body = await request.json();
     const { tripSlug, tripName, amount, pax, name, email, phone, departureDate } = body;
 
-    if (!tripSlug || !tripName || !amount || !name || !email || !phone) {
+    if (!tripSlug || !tripName || !amount) {
       return NextResponse.json(
         { success: false, message: "Missing required booking fields." },
         { status: 400 }
       );
     }
+
+    const validation = validateBookingDetails({ name, email, phone });
+    if (!validation.valid) {
+      return NextResponse.json(
+        { success: false, message: validation.message },
+        { status: 400 }
+      );
+    }
+
+    const contact = sanitizeBookingContact({ name, email, phone });
 
     const razorpay = getRazorpay();
     if (!razorpay) {
@@ -55,9 +69,9 @@ export async function POST(request) {
         trip_slug: tripSlug,
         trip_name: tripName,
         pax: String(pax || 1),
-        customer_name: name,
-        customer_email: email,
-        customer_phone: phone,
+        customer_name: contact.name,
+        customer_email: contact.email,
+        customer_phone: contact.phone,
         departure_date: departureDate || "",
       },
     });

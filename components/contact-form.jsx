@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { validateContactForm } from "@/lib/form-validation";
 
 const isSupabaseConfigured = () => {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -36,6 +37,13 @@ export function ContactForm({ tripInterest }) {
       status: "new",
     };
 
+    const validation = validateContactForm(data);
+    if (!validation.valid) {
+      setError(validation.message);
+      setLoading(false);
+      return;
+    }
+
     // If Supabase isn't configured, just show success (demo mode)
     if (!isSupabaseConfigured()) {
       console.log("Contact form submission (demo mode):", data);
@@ -48,7 +56,13 @@ export function ContactForm({ tripInterest }) {
       const supabase = createClient();
       const { error: submitError } = await supabase
         .from("contact_submissions")
-        .insert([data]);
+        .insert([{
+          ...data,
+          name: String(data.name).trim(),
+          email: String(data.email).trim().toLowerCase(),
+          phone: String(data.phone).trim(),
+          message: data.message ? String(data.message).trim() : null,
+        }]);
 
       if (submitError) throw submitError;
       setSent(true);
@@ -96,6 +110,8 @@ export function ContactForm({ tripInterest }) {
                 type="text"
                 name="name"
                 required
+                maxLength={100}
+                autoComplete="name"
                 placeholder="Your full name"
                 className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white"
               />
@@ -107,6 +123,9 @@ export function ContactForm({ tripInterest }) {
                 type="email"
                 name="email"
                 required
+                maxLength={254}
+                autoComplete="email"
+                inputMode="email"
                 placeholder="you@example.com"
                 className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white"
               />
@@ -118,6 +137,9 @@ export function ContactForm({ tripInterest }) {
                 type="tel"
                 name="phone"
                 required
+                maxLength={15}
+                autoComplete="tel"
+                inputMode="tel"
                 placeholder="+91 98XXX XXXXX"
                 className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white"
               />
@@ -128,6 +150,7 @@ export function ContactForm({ tripInterest }) {
               <textarea
                 name="message"
                 rows="4"
+                maxLength={2000}
                 placeholder="Tell us about destination, dates, group size..."
                 className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white resize-none"
               />

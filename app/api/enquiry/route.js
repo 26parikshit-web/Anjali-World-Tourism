@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { sanitizeEnquiryPayload, validateEnquiryPayload } from '@/lib/form-validation';
 
 // Initialize Supabase client
 // Using service role key for server-side API operations (bypasses RLS)
@@ -21,26 +22,28 @@ export async function POST(request) {
   try {
     const formData = await request.json();
 
-    // Validate required fields
-    if (!formData.name || !formData.email || !formData.phone || !formData.place) {
-      return NextResponse.json({ 
+    const validation = validateEnquiryPayload(formData);
+    if (!validation.valid) {
+      return NextResponse.json({
         success: false,
-        message: "Missing required fields" 
+        message: validation.message,
       }, { status: 400 });
     }
+
+    const sanitized = sanitizeEnquiryPayload(formData);
 
     // 1. Save to Database
     const { data: enquiry, error: dbError } = await supabase
       .from('enquiries')
       .insert([
         {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          passengers: formData.passengers ? parseInt(formData.passengers) : null,
-          duration: formData.duration,
-          place: formData.place,
-          budget: formData.budget,
+          name: sanitized.name,
+          email: sanitized.email,
+          phone: sanitized.phone,
+          passengers: sanitized.passengers ? parseInt(sanitized.passengers, 10) : null,
+          duration: sanitized.duration,
+          place: sanitized.place,
+          budget: sanitized.budget,
           status: 'new'
         }
       ])
@@ -56,12 +59,12 @@ export async function POST(request) {
     let emailSent = false;
     if (resend && process.env.ENQUIRY_EMAIL_TO) {
       try {
-        const emailHtml = buildEmailHtml(formData);
+        const emailHtml = buildEmailHtml(sanitized);
         
         await resend.emails.send({
           from: process.env.ENQUIRY_EMAIL_FROM || 'onboarding@resend.dev',
           to: process.env.ENQUIRY_EMAIL_TO,
-          subject: `🌍 New Travel Enquiry from ${formData.name}`,
+          subject: `🌍 New Travel Enquiry from ${sanitized.name}`,
           html: emailHtml,
         });
         
@@ -78,8 +81,8 @@ export async function POST(request) {
     // 3. Log for debugging
     console.log("New enquiry saved:", {
       id: enquiry.id,
-      name: formData.name,
-      place: formData.place,
+      name: sanitized.name,
+      place: sanitized.place,
       emailSent,
       timestamp: new Date().toISOString()
     });
