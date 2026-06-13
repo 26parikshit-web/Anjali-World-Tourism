@@ -6,8 +6,10 @@ import { CtaBand } from "@/components/home/cta-band";
 import { Reveal } from "@/components/home/reveal";
 import { CountUp } from "@/components/home/count-up";
 import { ReviewShowcase } from "@/components/review-showcase";
+import { ReviewSubmissionForm } from "@/components/review-submission-form";
+import { Button } from "@/components/ui/button";
 
-export function ReviewsPageView({ reviews, photoWallItems }) {
+export function ReviewsPageView({ reviews, photoWallItems, trips = [] }) {
   const avgRating =
     reviews.length > 0
       ? reviews.reduce((sum, r) => sum + (r.rating || 5), 0) / reviews.length
@@ -19,6 +21,13 @@ export function ReviewsPageView({ reviews, photoWallItems }) {
         eyebrow="Reviews"
         title="Customer moments backed by written stories."
         description="Click any image to read the traveler's full review. Every story comes from a real trip we planned."
+        action={
+          <a href="#submit-review">
+            <Button className="rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white hover:bg-zinc-800">
+              Submit Review
+            </Button>
+          </a>
+        }
       />
 
       {/* Fixed stats row — numbers animate, labels stay stable */}
@@ -85,6 +94,10 @@ export function ReviewsPageView({ reviews, photoWallItems }) {
           </Reveal>
         ))}
       </section>
+
+      <Reveal>
+        <ReviewSubmissionForm trips={trips} />
+      </Reveal>
 
       <CtaBand
         eyebrow="Inspired by their journeys?"

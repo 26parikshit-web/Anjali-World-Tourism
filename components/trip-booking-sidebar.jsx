@@ -1,28 +1,23 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Calendar, CheckCircle2, MessageCircle, Plane } from "lucide-react";
+import { CheckCircle2, MessageCircle, Plane } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   buildWhatsAppMessage,
   buildWhatsAppUrl,
-  formatDeparturePill,
-  getDepartureDates,
+  getDefaultBookingDate,
 } from "@/lib/trip-booking";
 import { contactDetails } from "@/lib/site-data";
-import { cn } from "@/lib/utils";
 import { TripBookingModal } from "@/components/trip-booking-modal";
+import { TripDatePicker } from "@/components/trip-date-picker";
 
 export function TripBookingSidebar({ trip, departureDate, onDepartureChange, razorpayEnabled = false }) {
-  const [monthOffset, setMonthOffset] = useState(0);
   const [bookingOpen, setBookingOpen] = useState(false);
 
-  const departureDates = useMemo(
-    () => getDepartureDates({ count: 5, monthOffset }),
-    [monthOffset]
-  );
+  const defaultDate = useMemo(() => getDefaultBookingDate(), []);
 
-  const selectedDate = departureDate || departureDates[0];
+  const selectedDate = departureDate || defaultDate;
 
   const whatsappUrl = buildWhatsAppUrl(
     contactDetails.whatsapp,
@@ -49,48 +44,7 @@ export function TripBookingSidebar({ trip, departureDate, onDepartureChange, raz
         </div>
 
         <div className="space-y-4 p-4 sm:space-y-5 sm:p-6">
-          {/* Departure dates */}
-          <div className="rounded-xl border border-zinc-200 p-3.5 sm:p-4">
-            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <h3 className="text-sm font-semibold text-zinc-900">Choose your Departure Dates</h3>
-              <button
-                type="button"
-                onClick={() => setMonthOffset((m) => m + 1)}
-                className="flex shrink-0 items-center gap-1 rounded-lg border border-zinc-200 px-2 py-1 text-[10px] font-medium text-zinc-600 transition-colors hover:border-amber-300 hover:bg-amber-50"
-              >
-                <Calendar className="h-3 w-3" />
-                Later Month
-              </button>
-            </div>
-
-            <div className="max-w-full overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
-              <div className="flex w-max gap-2 pb-1">
-              {departureDates.map((date) => {
-                const pill = formatDeparturePill(date);
-                const isSelected =
-                  selectedDate &&
-                  date.toDateString() === new Date(selectedDate).toDateString();
-
-                return (
-                  <button
-                    key={date.toISOString()}
-                    type="button"
-                    onClick={() => handleDateSelect(date)}
-                    className={cn(
-                      "flex min-w-[52px] shrink-0 flex-col items-center rounded-xl border px-3 py-2 transition-colors",
-                      isSelected
-                        ? "border-zinc-900 bg-zinc-900 text-white"
-                        : "border-zinc-300 bg-white text-zinc-900 hover:border-amber-300"
-                    )}
-                  >
-                    <span className="text-lg font-bold leading-none">{pill.day}</span>
-                    <span className="text-[10px] font-semibold uppercase">{pill.month}</span>
-                  </button>
-                );
-              })}
-              </div>
-            </div>
-          </div>
+          <TripDatePicker selectedDate={selectedDate} onSelect={handleDateSelect} compact />
 
           {/* Trip meta */}
           <div className="space-y-2 text-sm">
@@ -193,6 +147,7 @@ export function TripBookingSidebar({ trip, departureDate, onDepartureChange, raz
       <TripBookingModal
         trip={trip}
         departureDate={selectedDate}
+        onDepartureChange={handleDateSelect}
         open={bookingOpen}
         onClose={() => setBookingOpen(false)}
         razorpayEnabled={razorpayEnabled}

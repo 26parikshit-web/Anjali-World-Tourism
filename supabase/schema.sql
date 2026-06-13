@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS trips (
 CREATE TABLE IF NOT EXISTS reviews (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   name TEXT NOT NULL,
+  email TEXT,
   designation TEXT,
   trip TEXT,
   trip_id UUID REFERENCES trips(id) ON DELETE SET NULL,
@@ -104,6 +105,14 @@ CREATE POLICY "Public can view active trips" ON trips
 
 CREATE POLICY "Public can view approved reviews" ON reviews
   FOR SELECT USING (is_approved = true);
+
+CREATE POLICY "Public can submit pending reviews" ON reviews
+  FOR INSERT
+  WITH CHECK (
+    is_approved = false
+    AND is_featured = false
+    AND rating BETWEEN 1 AND 5
+  );
 
 CREATE POLICY "Public can view gallery" ON gallery
   FOR SELECT USING (true);

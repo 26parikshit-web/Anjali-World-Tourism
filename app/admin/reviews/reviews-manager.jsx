@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { DataTable } from "@/components/admin/data-table";
 import { Button } from "@/components/ui/button";
-import { Plus, Edit, Trash2, X, Star } from "lucide-react";
+import { Check, Plus, Edit, Trash2, X, Star } from "lucide-react";
 
 export function ReviewsManager({ reviews, trips }) {
   const router = useRouter();
@@ -16,6 +16,7 @@ export function ReviewsManager({ reviews, trips }) {
 
   const [formData, setFormData] = useState({
     name: "",
+    email: "",
     designation: "",
     trip: "",
     trip_id: "",
@@ -29,6 +30,7 @@ export function ReviewsManager({ reviews, trips }) {
   const resetForm = () => {
     setFormData({
       name: "",
+      email: "",
       designation: "",
       trip: "",
       trip_id: "",
@@ -41,10 +43,19 @@ export function ReviewsManager({ reviews, trips }) {
     setEditingReview(null);
   };
 
+  const refreshReviewCaches = async () => {
+    try {
+      await fetch("/api/revalidate/reviews", { method: "POST" });
+    } catch {
+      return;
+    }
+  };
+
   const openModal = (review = null) => {
     if (review) {
       setFormData({
         name: review.name || "",
+        email: review.email || "",
         designation: review.designation || "",
         trip: review.trip || "",
         trip_id: review.trip_id || "",
@@ -84,6 +95,7 @@ export function ReviewsManager({ reviews, trips }) {
 
       setShowModal(false);
       resetForm();
+      await refreshReviewCaches();
       router.refresh();
     } catch (err) {
       alert("Error: " + err.message);
@@ -99,6 +111,21 @@ export function ReviewsManager({ reviews, trips }) {
     if (error) {
       alert("Error: " + error.message);
     } else {
+      await refreshReviewCaches();
+      router.refresh();
+    }
+  };
+
+  const handleApprove = async (id) => {
+    const { error } = await supabase
+      .from("reviews")
+      .update({ is_approved: true })
+      .eq("id", id);
+
+    if (error) {
+      alert("Error: " + error.message);
+    } else {
+      await refreshReviewCaches();
       router.refresh();
     }
   };
@@ -122,7 +149,7 @@ export function ReviewsManager({ reviews, trips }) {
           )}
           <div>
             <p className="font-medium text-zinc-900">{value}</p>
-            <p className="text-xs text-zinc-500">{row.designation}</p>
+            <p className="text-xs text-zinc-500">{row.email || row.designation}</p>
           </div>
         </div>
       ),
@@ -171,6 +198,15 @@ export function ReviewsManager({ reviews, trips }) {
 
   const actions = (row) => (
     <>
+      {!row.is_approved && (
+        <button
+          onClick={() => handleApprove(row.id)}
+          className="p-1.5 rounded-lg hover:bg-emerald-50 text-zinc-500 hover:text-emerald-600"
+          aria-label={`Approve review from ${row.name}`}
+        >
+          <Check className="w-4 h-4" />
+        </button>
+      )}
       <button
         onClick={() => openModal(row)}
         className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-zinc-700"
@@ -236,6 +272,21 @@ export function ReviewsManager({ reviews, trips }) {
                     setFormData((prev) => ({ ...prev, name: e.target.value }))
                   }
                   required
+                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm outline-none focus:border-zinc-400 focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-zinc-700 mb-1.5">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, email: e.target.value }))
+                  }
+                  placeholder="traveler@example.com"
                   className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm outline-none focus:border-zinc-400 focus:bg-white"
                 />
               </div>

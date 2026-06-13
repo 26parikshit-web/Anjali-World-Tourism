@@ -15,6 +15,7 @@ import {
   sanitizeBookingContact,
   validateBookingDetails,
 } from "@/lib/form-validation";
+import { TripDatePicker } from "@/components/trip-date-picker";
 
 function loadRazorpayScript() {
   return new Promise((resolve) => {
@@ -30,7 +31,14 @@ function loadRazorpayScript() {
   });
 }
 
-export function TripBookingModal({ trip, departureDate, open, onClose, razorpayEnabled = false }) {
+export function TripBookingModal({
+  trip,
+  departureDate,
+  onDepartureChange,
+  open,
+  onClose,
+  razorpayEnabled = false,
+}) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -367,6 +375,11 @@ export function TripBookingModal({ trip, departureDate, open, onClose, razorpayE
                   <h2 id="booking-title" className="pr-10 text-lg font-semibold text-zinc-900 sm:text-xl">
                     Complete Your Booking
                   </h2>
+
+                  <TripDatePicker
+                    selectedDate={departureDate}
+                    onSelect={onDepartureChange}
+                  />
 
                   <div className="rounded-xl border border-zinc-200 p-3.5 sm:p-4">
                 <h3 className="mb-4 text-sm font-semibold text-zinc-900">Traveler Details</h3>

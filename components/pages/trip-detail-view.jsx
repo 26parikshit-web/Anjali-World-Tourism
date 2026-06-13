@@ -9,7 +9,7 @@ import { TripGallery } from "@/components/trip-gallery";
 import { TripItinerarySection } from "@/components/trip-itinerary-section";
 import { TripBookingSidebar } from "@/components/trip-booking-sidebar";
 import { cloudinaryHeroUrl } from "@/lib/cloudinary";
-import { getDepartureDates } from "@/lib/trip-booking";
+import { getDefaultBookingDate } from "@/lib/trip-booking";
 
 export function TripDetailView({ trip, featureFlags = {} }) {
   const description = trip.description || "";
@@ -22,7 +22,7 @@ export function TripDetailView({ trip, featureFlags = {} }) {
   const exclusions = trip.exclusions || [];
   const tags = trip.tags || [];
 
-  const defaultDeparture = useMemo(() => getDepartureDates({ count: 1 })[0], []);
+  const defaultDeparture = useMemo(() => getDefaultBookingDate(), []);
   const [departureDate, setDepartureDate] = useState(defaultDeparture);
 
   return (
