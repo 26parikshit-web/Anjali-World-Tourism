@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS reviews (
   trip_id UUID REFERENCES trips(id) ON DELETE SET NULL,
   quote TEXT NOT NULL,
   image_url TEXT,
+  cloudinary_public_id TEXT,
+  resource_type TEXT DEFAULT 'image',
   rating INTEGER DEFAULT 5 CHECK (rating >= 1 AND rating <= 5),
   is_featured BOOLEAN DEFAULT false,
   is_approved BOOLEAN DEFAULT true,

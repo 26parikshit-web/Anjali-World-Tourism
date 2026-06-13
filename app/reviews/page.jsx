@@ -1,6 +1,7 @@
 import { getReviews, getTrips } from "@/lib/data-service";
 import { ReviewsPageView } from "@/components/pages/reviews-page-view";
 import { buildPageMetadata } from "@/lib/seo";
+import { hasReviewMedia, mapReviewToShowcaseItem } from "@/lib/review-media";
 
 export const revalidate = 60;
 
@@ -14,15 +15,10 @@ export const metadata = buildPageMetadata({
 export default async function ReviewsPage() {
   const [reviews, trips] = await Promise.all([getReviews(), getTrips()]);
 
-  const photoWallItems = reviews.map((review) => ({
-    id: review.id,
-    name: review.name,
-    designation: review.designation,
-    trip: review.trip,
-    quote: review.quote,
-    image: review.image_url || review.image,
-    rating: review.rating || 5,
-  }));
+  const mediaReviews = reviews.filter(hasReviewMedia);
+  const textReviews = reviews.filter((review) => !hasReviewMedia(review));
+
+  const photoWallItems = mediaReviews.map(mapReviewToShowcaseItem);
 
   const reviewTrips = trips.map((trip) => ({
     id: trip.id,
@@ -31,9 +27,10 @@ export default async function ReviewsPage() {
 
   return (
     <ReviewsPageView
-      reviews={reviews}
+      reviews={textReviews}
       photoWallItems={photoWallItems}
       trips={reviewTrips}
+      totalReviewCount={reviews.length}
     />
   );
 }

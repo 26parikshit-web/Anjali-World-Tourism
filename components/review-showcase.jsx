@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ParallaxScroll } from "@/components/ui/parallax-scroll";
-import { X, Star } from "lucide-react";
+import { Star, X } from "lucide-react";
 
 export function ReviewShowcase({ items }) {
   const [selectedId, setSelectedId] = useState(null);
@@ -11,10 +11,13 @@ export function ReviewShowcase({ items }) {
 
   const photoWallData = items.map((item) => ({
     id: item.id,
-    src: item.image,
+    src: item.thumbnail || item.image,
     alt: item.name,
     label: `${item.name} - ${item.trip}`,
+    resourceType: item.resourceType || "image",
   }));
+
+  if (items.length === 0) return null;
 
   return (
     <div className="relative">
@@ -36,16 +39,25 @@ export function ReviewShowcase({ items }) {
           >
             <button
               onClick={() => setSelectedId(null)}
-              className="absolute right-4 top-4 rounded-full bg-zinc-100 p-2 text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-900"
+              className="absolute right-4 top-4 z-10 rounded-full bg-zinc-100 p-2 text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-900"
             >
               <X className="h-4 w-4" />
             </button>
 
-            <img
-              src={selectedItem.image}
-              alt={selectedItem.name}
-              className="h-56 w-full rounded-xl object-cover"
-            />
+            {selectedItem.resourceType === "video" ? (
+              <video
+                src={selectedItem.mediaUrl || selectedItem.image}
+                controls
+                playsInline
+                className="h-56 w-full rounded-xl object-cover bg-zinc-950"
+              />
+            ) : (
+              <img
+                src={selectedItem.mediaUrl || selectedItem.image}
+                alt={selectedItem.name}
+                className="h-56 w-full rounded-xl object-cover"
+              />
+            )}
 
             <div className="mt-4">
               <div className="flex items-center justify-between">

@@ -13,6 +13,7 @@ export function ReviewsManager({ reviews, trips }) {
   const [showModal, setShowModal] = useState(false);
   const [editingReview, setEditingReview] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [approvingId, setApprovingId] = useState(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -22,6 +23,8 @@ export function ReviewsManager({ reviews, trips }) {
     trip_id: "",
     quote: "",
     image_url: "",
+    cloudinary_public_id: "",
+    resource_type: "image",
     rating: 5,
     is_featured: false,
     is_approved: true,
@@ -36,6 +39,8 @@ export function ReviewsManager({ reviews, trips }) {
       trip_id: "",
       quote: "",
       image_url: "",
+      cloudinary_public_id: "",
+      resource_type: "image",
       rating: 5,
       is_featured: false,
       is_approved: true,
@@ -61,6 +66,8 @@ export function ReviewsManager({ reviews, trips }) {
         trip_id: review.trip_id || "",
         quote: review.quote || "",
         image_url: review.image_url || "",
+        cloudinary_public_id: review.cloudinary_public_id || "",
+        resource_type: review.resource_type || "image",
         rating: review.rating || 5,
         is_featured: review.is_featured || false,
         is_approved: review.is_approved ?? true,
@@ -82,20 +89,50 @@ export function ReviewsManager({ reviews, trips }) {
         trip_id: formData.trip_id || null,
       };
 
-      if (editingReview) {
+      const isNewApproval =
+        editingReview && formData.is_approved && !editingReview.is_approved;
+
+      if (isNewApproval) {
+        const response = await fetch("/api/admin/reviews/approve", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            reviewId: editingReview.id,
+            patch: {
+              name: dataToSave.name,
+              email: dataToSave.email,
+              designation: dataToSave.designation,
+              trip: dataToSave.trip,
+              trip_id: dataToSave.trip_id,
+              quote: dataToSave.quote,
+              rating: dataToSave.rating,
+              is_featured: dataToSave.is_featured,
+              resource_type: dataToSave.resource_type,
+            },
+          }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || "Failed to approve review.");
+        }
+      } else if (editingReview) {
         const { error } = await supabase
           .from("reviews")
           .update(dataToSave)
           .eq("id", editingReview.id);
         if (error) throw error;
+        await refreshReviewCaches();
       } else {
         const { error } = await supabase.from("reviews").insert([dataToSave]);
         if (error) throw error;
+        await refreshReviewCaches();
       }
 
       setShowModal(false);
       resetForm();
-      await refreshReviewCaches();
+      if (!isNewApproval) {
+        await refreshReviewCaches();
+      }
       router.refresh();
     } catch (err) {
       alert("Error: " + err.message);
@@ -116,17 +153,26 @@ export function ReviewsManager({ reviews, trips }) {
     }
   };
 
-  const handleApprove = async (id) => {
-    const { error } = await supabase
-      .from("reviews")
-      .update({ is_approved: true })
-      .eq("id", id);
+  const handleApprove = async (review) => {
+    setApprovingId(review.id);
 
-    if (error) {
-      alert("Error: " + error.message);
-    } else {
-      await refreshReviewCaches();
+    try {
+      const response = await fetch("/api/admin/reviews/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviewId: review.id }),
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to approve review.");
+      }
+
       router.refresh();
+    } catch (err) {
+      alert("Error: " + err.message);
+    } finally {
+      setApprovingId(null);
     }
   };
 
@@ -137,11 +183,23 @@ export function ReviewsManager({ reviews, trips }) {
       render: (value, row) => (
         <div className="flex items-center gap-3">
           {row.image_url ? (
-            <img
-              src={row.image_url}
-              alt={value}
-              className="w-10 h-10 rounded-full object-cover"
-            />
+            row.resource_type === "video" ? (
+              <div className="relative w-10 h-10 rounded-full overflow-hidden bg-zinc-900 flex items-center justify-center">
+                <video
+                  src={row.image_url}
+                  className="w-full h-full object-cover opacity-80"
+                  muted
+                  playsInline
+                />
+                <span className="absolute text-[8px] font-bold text-white">VID</span>
+              </div>
+            ) : (
+              <img
+                src={row.image_url}
+                alt={value}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            )
           ) : (
             <div className="w-10 h-10 rounded-full bg-zinc-200 flex items-center justify-center text-sm font-semibold text-zinc-600">
               {value?.charAt(0)?.toUpperCase()}
@@ -200,8 +258,9 @@ export function ReviewsManager({ reviews, trips }) {
     <>
       {!row.is_approved && (
         <button
-          onClick={() => handleApprove(row.id)}
-          className="p-1.5 rounded-lg hover:bg-emerald-50 text-zinc-500 hover:text-emerald-600"
+          onClick={() => handleApprove(row)}
+          disabled={approvingId === row.id}
+          className="p-1.5 rounded-lg hover:bg-emerald-50 text-zinc-500 hover:text-emerald-600 disabled:opacity-50"
           aria-label={`Approve review from ${row.name}`}
         >
           <Check className="w-4 h-4" />
@@ -351,7 +410,7 @@ export function ReviewsManager({ reviews, trips }) {
 
               <div>
                 <label className="block text-xs font-medium text-zinc-700 mb-1.5">
-                  Photo URL
+                  Photo / Video URL
                 </label>
                 <input
                   type="text"
@@ -362,9 +421,46 @@ export function ReviewsManager({ reviews, trips }) {
                       image_url: e.target.value,
                     }))
                   }
-                  placeholder="https://..."
+                  placeholder="https://res.cloudinary.com/..."
                   className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm outline-none focus:border-zinc-400 focus:bg-white"
                 />
+                {formData.image_url && (
+                  <div className="mt-2 overflow-hidden rounded-xl border border-zinc-200">
+                    {formData.resource_type === "video" ? (
+                      <video
+                        src={formData.image_url}
+                        controls
+                        playsInline
+                        className="h-32 w-full object-cover bg-zinc-950"
+                      />
+                    ) : (
+                      <img
+                        src={formData.image_url}
+                        alt="Review media preview"
+                        className="h-32 w-full object-cover"
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-zinc-700 mb-1.5">
+                  Media type
+                </label>
+                <select
+                  value={formData.resource_type}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      resource_type: e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm outline-none focus:border-zinc-400 focus:bg-white"
+                >
+                  <option value="image">Photo</option>
+                  <option value="video">Video</option>
+                </select>
               </div>
 
               <div>

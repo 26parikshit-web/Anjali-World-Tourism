@@ -9,18 +9,32 @@ import { ReviewShowcase } from "@/components/review-showcase";
 import { ReviewSubmissionForm } from "@/components/review-submission-form";
 import { Button } from "@/components/ui/button";
 
-export function ReviewsPageView({ reviews, photoWallItems, trips = [] }) {
+export function ReviewsPageView({
+  reviews,
+  photoWallItems,
+  trips = [],
+  totalReviewCount,
+}) {
+  const reviewCount = totalReviewCount ?? reviews.length + photoWallItems.length;
+  const allReviewsForRating = [...reviews, ...photoWallItems];
   const avgRating =
-    reviews.length > 0
-      ? reviews.reduce((sum, r) => sum + (r.rating || 5), 0) / reviews.length
+    allReviewsForRating.length > 0
+      ? allReviewsForRating.reduce((sum, r) => sum + (r.rating || 5), 0) /
+        allReviewsForRating.length
       : 4.9;
+
+  const hasPhotoWall = photoWallItems.length > 0;
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 pb-16 pt-20 sm:px-6 lg:px-8">
       <PageHero
         eyebrow="Reviews"
         title="Customer moments backed by written stories."
-        description="Click any image to read the traveler's full review. Every story comes from a real trip we planned."
+        description={
+          hasPhotoWall
+            ? "Click any photo or video to read the traveler's full review. Every story comes from a real trip we planned."
+            : "Read honest stories from travelers who explored with us. Share yours below — add a photo to appear in the gallery above."
+        }
         action={
           <a href="#submit-review">
             <Button className="rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white hover:bg-zinc-800">
@@ -30,11 +44,10 @@ export function ReviewsPageView({ reviews, photoWallItems, trips = [] }) {
         }
       />
 
-      {/* Fixed stats row — numbers animate, labels stay stable */}
       <Reveal className="grid grid-cols-3 gap-4 rounded-2xl border border-zinc-200 bg-white p-5 sm:p-6">
         <div className="text-center">
           <p className="text-2xl font-bold text-zinc-900 tabular-nums">
-            <CountUp value={reviews.length} suffix="+" />
+            <CountUp value={reviewCount} suffix="+" />
           </p>
           <p className="mt-1 text-[11px] uppercase tracking-[0.15em] text-zinc-500">
             Stories Shared
@@ -56,44 +69,48 @@ export function ReviewsPageView({ reviews, photoWallItems, trips = [] }) {
         </div>
       </Reveal>
 
-      <Reveal delay={0.1}>
-        <ReviewShowcase items={photoWallItems} />
-      </Reveal>
+      {hasPhotoWall && (
+        <Reveal delay={0.1}>
+          <ReviewShowcase items={photoWallItems} />
+        </Reveal>
+      )}
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {reviews.map((review, i) => (
-          <Reveal key={review.id} delay={i * 0.05}>
-            <article className="h-full rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-200 hover:shadow-[0_16px_40px_-16px_rgba(0,0,0,0.12)]">
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-600">
-                  {review.trip}
+      {reviews.length > 0 && (
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {reviews.map((review, i) => (
+            <Reveal key={review.id} delay={i * 0.05}>
+              <article className="h-full rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-200 hover:shadow-[0_16px_40px_-16px_rgba(0,0,0,0.12)]">
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-600">
+                    {review.trip}
+                  </p>
+                  {review.rating && (
+                    <div className="flex items-center gap-0.5">
+                      {[...Array(5)].map((_, j) => (
+                        <Star
+                          key={j}
+                          className={`h-3 w-3 ${
+                            j < review.rating
+                              ? "fill-amber-400 text-amber-400"
+                              : "text-zinc-200"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <h2 className="mt-2 text-lg font-semibold leading-tight text-zinc-900">
+                  {review.name}
+                </h2>
+                <p className="mt-0.5 text-xs text-zinc-500">{review.designation}</p>
+                <p className="mt-3 text-sm leading-relaxed text-zinc-600">
+                  &quot;{review.quote}&quot;
                 </p>
-                {review.rating && (
-                  <div className="flex items-center gap-0.5">
-                    {[...Array(5)].map((_, j) => (
-                      <Star
-                        key={j}
-                        className={`h-3 w-3 ${
-                          j < review.rating
-                            ? "fill-amber-400 text-amber-400"
-                            : "text-zinc-200"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-              <h2 className="mt-2 text-lg font-semibold leading-tight text-zinc-900">
-                {review.name}
-              </h2>
-              <p className="mt-0.5 text-xs text-zinc-500">{review.designation}</p>
-              <p className="mt-3 text-sm leading-relaxed text-zinc-600">
-                &quot;{review.quote}&quot;
-              </p>
-            </article>
-          </Reveal>
-        ))}
-      </section>
+              </article>
+            </Reveal>
+          ))}
+        </section>
+      )}
 
       <Reveal>
         <ReviewSubmissionForm trips={trips} />

@@ -1,7 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { CheckCircle2, Mail, MapPin, Send, Star, User } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import {
+  CheckCircle2,
+  ImagePlus,
+  Loader2,
+  Mail,
+  MapPin,
+  Send,
+  Star,
+  User,
+  Video,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -15,11 +26,23 @@ const initialForm = {
   quote: "",
 };
 
+const initialMedia = {
+  file: null,
+  preview: "",
+  url: "",
+  publicId: "",
+  resourceType: "",
+  uploading: false,
+  error: "",
+};
+
 export function ReviewSubmissionForm({ trips = [] }) {
   const [formData, setFormData] = useState(initialForm);
+  const [media, setMedia] = useState(initialMedia);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const fileInputRef = useRef(null);
 
   const tripOptions = useMemo(
     () => trips.filter((trip) => trip?.id && trip?.name),
@@ -39,17 +62,91 @@ export function ReviewSubmissionForm({ trips = [] }) {
     }));
   };
 
+  const clearMedia = () => {
+    if (media.preview?.startsWith("blob:")) {
+      URL.revokeObjectURL(media.preview);
+    }
+    setMedia(initialMedia);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const uploadMedia = async (file) => {
+    const preview = URL.createObjectURL(file);
+    setMedia({
+      file,
+      preview,
+      url: "",
+      publicId: "",
+      resourceType: file.type.startsWith("video/") ? "video" : "image",
+      uploading: true,
+      error: "",
+    });
+
+    try {
+      const body = new FormData();
+      body.append("file", file);
+
+      const response = await fetch("/api/reviews/upload-media", {
+        method: "POST",
+        body,
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to upload media.");
+      }
+
+      setMedia((current) => ({
+        ...current,
+        url: data.url,
+        publicId: data.publicId,
+        resourceType: data.resourceType || data.type || current.resourceType,
+        uploading: false,
+        error: "",
+      }));
+    } catch (err) {
+      setMedia((current) => ({
+        ...current,
+        uploading: false,
+        error: err.message || "Upload failed. Please try again.",
+      }));
+    }
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    uploadMedia(file);
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
     setError("");
     setMessage("");
 
+    if (media.uploading) {
+      setError("Please wait for your photo or video to finish uploading.");
+      setLoading(false);
+      return;
+    }
+
+    if (media.file && !media.url) {
+      setError("Media upload failed. Remove the file and try again.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          image_url: media.url || null,
+          cloudinary_public_id: media.publicId || null,
+          resource_type: media.resourceType || null,
+        }),
       });
       const data = await response.json();
 
@@ -59,6 +156,7 @@ export function ReviewSubmissionForm({ trips = [] }) {
 
       setMessage(data.message || "Review submitted successfully.");
       setFormData(initialForm);
+      clearMedia();
     } catch (err) {
       setError(err.message || "Failed to submit review. Please try again.");
     } finally {
@@ -81,6 +179,7 @@ export function ReviewSubmissionForm({ trips = [] }) {
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-zinc-300">
             Submitted reviews go to the admin portal first. Once approved, they appear on this page.
+            Add a photo or video to feature your moment in the gallery above.
           </p>
           <div className="mt-5 flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-200">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
@@ -200,6 +299,84 @@ export function ReviewSubmissionForm({ trips = [] }) {
             />
           </label>
 
+          <div>
+            <span className="mb-1.5 block text-xs font-medium text-zinc-700">
+              Photo or video <span className="font-normal text-zinc-400">(optional)</span>
+            </span>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
+              onChange={handleFileChange}
+              className="sr-only"
+              id="review-media-upload"
+            />
+
+            {!media.file ? (
+              <label
+                htmlFor="review-media-upload"
+                className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 bg-zinc-50 px-4 py-8 text-center transition hover:border-zinc-400 hover:bg-white"
+              >
+                <div className="flex items-center gap-2 text-zinc-500">
+                  <ImagePlus className="h-5 w-5" />
+                  <Video className="h-5 w-5" />
+                </div>
+                <p className="mt-2 text-sm font-medium text-zinc-700">
+                  Upload a trip photo or video
+                </p>
+                <p className="mt-1 text-xs text-zinc-500">
+                  JPG, PNG, WebP up to 8 MB · MP4, WebM, MOV up to 30 MB
+                </p>
+              </label>
+            ) : (
+              <div className="relative overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50">
+                {media.resourceType === "video" ? (
+                  <video
+                    src={media.preview}
+                    className="h-48 w-full object-cover"
+                    muted
+                    playsInline
+                  />
+                ) : (
+                  <img
+                    src={media.preview}
+                    alt="Review upload preview"
+                    className="h-48 w-full object-cover"
+                  />
+                )}
+
+                {media.uploading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                    <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-zinc-900">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Uploading to Cloudinary…
+                    </div>
+                  </div>
+                )}
+
+                {!media.uploading && media.url && (
+                  <div className="absolute left-3 top-3 rounded-full bg-emerald-500/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+                    Ready
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={clearMedia}
+                  disabled={media.uploading}
+                  className="absolute right-3 top-3 rounded-full bg-white/90 p-1.5 text-zinc-700 shadow-sm transition hover:bg-white disabled:opacity-50"
+                  aria-label="Remove uploaded media"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
+            {media.error && (
+              <p className="mt-2 text-sm text-red-600">{media.error}</p>
+            )}
+          </div>
+
           {message && (
             <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
               {message}
@@ -213,7 +390,7 @@ export function ReviewSubmissionForm({ trips = [] }) {
 
           <Button
             type="submit"
-            disabled={loading}
+            disabled={loading || media.uploading}
             className="w-full rounded-xl bg-zinc-900 py-5 text-sm font-semibold text-white hover:bg-zinc-800 sm:w-auto sm:px-6"
           >
             <Send className="mr-2 h-4 w-4 text-amber-300" />
