@@ -66,6 +66,32 @@ CREATE TABLE IF NOT EXISTS group_trips (
   CONSTRAINT group_trips_spots_within_capacity CHECK (spots_booked <= max_capacity)
 );
 
+-- Bookings (Razorpay trip / group trip payments)
+CREATE TABLE IF NOT EXISTS bookings (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  booking_kind TEXT DEFAULT 'trip',
+  trip_slug TEXT NOT NULL,
+  trip_name TEXT NOT NULL,
+  group_trip_id UUID REFERENCES group_trips(id) ON DELETE SET NULL,
+  group_trip_slug TEXT,
+  customer_name TEXT NOT NULL,
+  customer_email TEXT NOT NULL,
+  customer_phone TEXT,
+  pax INTEGER DEFAULT 1,
+  package_tier TEXT,
+  discount_percent NUMERIC(5,2),
+  amount_before_discount NUMERIC(12, 2),
+  amount NUMERIC(12, 2),
+  departure_date TIMESTAMPTZ,
+  razorpay_order_id TEXT,
+  razorpay_payment_id TEXT,
+  status TEXT DEFAULT 'paid' CHECK (status IN ('pending', 'paid', 'failed', 'refunded')),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_bookings_trip_slug ON bookings(trip_slug);
+CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
+
 -- Reviews Table
 CREATE TABLE IF NOT EXISTS reviews (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,

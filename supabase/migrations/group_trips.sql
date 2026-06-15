@@ -39,9 +39,11 @@ CREATE INDEX IF NOT EXISTS idx_group_trips_active ON group_trips(is_active);
 
 ALTER TABLE group_trips ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Public can view active group trips" ON group_trips;
 CREATE POLICY "Public can view active group trips" ON group_trips
   FOR SELECT USING (is_active = true);
 
+DROP POLICY IF EXISTS "Admins can manage group trips" ON group_trips;
 CREATE POLICY "Admins can manage group trips" ON group_trips
   FOR ALL USING (auth.role() = 'authenticated');
 
@@ -68,6 +70,32 @@ BEGIN
 END;
 $$;
 
+-- Bookings table (required for payment records; safe if already created via bookings.sql)
+CREATE TABLE IF NOT EXISTS bookings (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  trip_slug TEXT NOT NULL,
+  trip_name TEXT NOT NULL,
+  customer_name TEXT NOT NULL,
+  customer_email TEXT NOT NULL,
+  customer_phone TEXT,
+  pax INTEGER DEFAULT 1,
+  amount NUMERIC(12, 2),
+  departure_date TIMESTAMPTZ,
+  razorpay_order_id TEXT,
+  razorpay_payment_id TEXT,
+  status TEXT DEFAULT 'paid' CHECK (status IN ('pending', 'paid', 'failed', 'refunded')),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_bookings_trip_slug ON bookings(trip_slug);
+CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings(status);
+
+-- Pricing audit columns (from trip_pricing_packages.sql)
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS package_tier TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS discount_percent NUMERIC(5,2);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS amount_before_discount NUMERIC(12, 2);
+
+-- Group trip booking columns
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS booking_kind TEXT DEFAULT 'trip';
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS group_trip_id UUID REFERENCES group_trips(id) ON DELETE SET NULL;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS group_trip_slug TEXT;
