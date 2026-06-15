@@ -162,6 +162,14 @@ ALTER TABLE trips ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE gallery ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contact_submissions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
+
+-- Bookings: admin read/update only (inserts via service role on payment verify)
+CREATE POLICY "Admins can view bookings" ON bookings
+  FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Admins can update bookings" ON bookings
+  FOR UPDATE USING (auth.role() = 'authenticated');
 
 -- Public read policies for trips, reviews, gallery
 CREATE POLICY "Public can view active trips" ON trips

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import Razorpay from "razorpay";
 import { FEATURE_FLAG_KEYS, isFeatureEnabled } from "@/lib/feature-flags";
 import {
   sanitizeBookingContact,
@@ -7,13 +6,11 @@ import {
 } from "@/lib/form-validation";
 import { computeTripQuote, fetchTripForPricing, fetchGroupTripForPricing } from "@/lib/trip-pricing";
 import { canAccommodatePax, capacityLabel } from "@/lib/group-trip-capacity";
-
-function getRazorpay() {
-  const keyId = process.env.RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
-  if (!keyId || !keySecret) return null;
-  return new Razorpay({ key_id: keyId, key_secret: keySecret });
-}
+import {
+  createRazorpayClient,
+  formatRazorpayError,
+  getRazorpayKeyIdForCheckout,
+} from "@/lib/razorpay-config";
 
 export async function POST(request) {
   try {
@@ -95,13 +92,10 @@ export async function POST(request) {
 
     const contact = sanitizeBookingContact({ name, email, phone });
 
-    const razorpay = getRazorpay();
+    const { client: razorpay, error: configError } = createRazorpayClient();
     if (!razorpay) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Payment gateway is not configured. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.",
-        },
+        { success: false, message: configError },
         { status: 503 }
       );
     }
@@ -138,7 +132,7 @@ export async function POST(request) {
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
-      keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID,
+      keyId: getRazorpayKeyIdForCheckout(),
       quote: {
         packageKey: quote.packageKey,
         total: quote.totalRupees,
@@ -148,7 +142,7 @@ export async function POST(request) {
   } catch (error) {
     console.error("Create order error:", error);
     return NextResponse.json(
-      { success: false, message: error.message || "Failed to create order." },
+      { success: false, message: formatRazorpayError(error) },
       { status: 500 }
     );
   }

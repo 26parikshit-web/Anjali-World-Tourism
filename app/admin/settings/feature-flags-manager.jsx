@@ -29,11 +29,10 @@ function FlagToggle({ flag, saving, onToggle }) {
           <p className="mt-2 font-mono text-[11px] text-zinc-400">{flag.key}</p>
           {flag.key === "razorpay_payments" && (
             <p className="mt-2 text-xs text-zinc-500">
-              Also requires{" "}
-              <code className="rounded bg-zinc-100 px-1">RAZORPAY_KEY_ID</code>,{" "}
-              <code className="rounded bg-zinc-100 px-1">RAZORPAY_KEY_SECRET</code>, and{" "}
-              <code className="rounded bg-zinc-100 px-1">NEXT_PUBLIC_RAZORPAY_KEY_ID</code> in
-              your environment.
+              Requires <code className="rounded bg-zinc-100 px-1">RAZORPAY_KEY_ID</code> and{" "}
+              <code className="rounded bg-zinc-100 px-1">RAZORPAY_KEY_SECRET</code> in{" "}
+              <code className="rounded bg-zinc-100 px-1">.env.local</code> (dev) or hosting env
+              (production). Restart the server after changing env vars.
             </p>
           )}
         </div>

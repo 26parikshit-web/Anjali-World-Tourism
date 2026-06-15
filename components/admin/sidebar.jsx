@@ -16,6 +16,7 @@ import {
   Settings,
   Home,
   X,
+  CreditCard,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/admin/reviews", label: "Reviews", icon: Star },
   { href: "/admin/gallery", label: "Gallery", icon: Image },
   { href: "/admin/enquiries", label: "Enquiries", icon: Mail },
+  { href: "/admin/bookings", label: "Bookings", icon: CreditCard },
   { href: "/admin/contacts", label: "Contacts", icon: MessageSquare },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];

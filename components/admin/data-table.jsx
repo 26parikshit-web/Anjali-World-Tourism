@@ -8,16 +8,21 @@ export function DataTable({
   data,
   searchable = true,
   searchPlaceholder = "Search...",
+  searchKeys,
   pageSize = 10,
   actions,
+  onRowClick,
+  emptyMessage = "No data found",
 }) {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
+  const keysToSearch = searchKeys?.length ? searchKeys : columns.map((col) => col.key);
+
   const filteredData = searchable
     ? data.filter((row) =>
-        columns.some((col) => {
-          const value = row[col.key];
+        keysToSearch.some((key) => {
+          const value = row[key];
           if (value == null) return false;
           return String(value).toLowerCase().includes(search.toLowerCase());
         })
@@ -74,12 +79,16 @@ export function DataTable({
                   colSpan={columns.length + (actions ? 1 : 0)}
                   className="px-4 py-8 text-center text-sm text-zinc-500"
                 >
-                  No data found
+                  {emptyMessage}
                 </td>
               </tr>
             ) : (
               paginatedData.map((row, index) => (
-                <tr key={row.id || index} className="hover:bg-zinc-50">
+                <tr
+                  key={row.id || index}
+                  className={`hover:bg-zinc-50 ${onRowClick ? "cursor-pointer" : ""}`}
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                >
                   {columns.map((col) => (
                     <td key={col.key} className="px-4 py-3 text-sm text-zinc-700">
                       {col.render ? col.render(row[col.key], row) : row[col.key]}

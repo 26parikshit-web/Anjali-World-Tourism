@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import Razorpay from "razorpay";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import { FEATURE_FLAG_KEYS, isFeatureEnabled } from "@/lib/feature-flags";
@@ -11,19 +10,13 @@ import {
 import { computeTripQuote, fetchTripForPricing, fetchGroupTripForPricing, paiseToRupees } from "@/lib/trip-pricing";
 import { canAccommodatePax } from "@/lib/group-trip-capacity";
 import { reserveGroupTripSpots } from "@/lib/group-trip-reserve";
+import { createRazorpayClient, getRazorpayConfigError } from "@/lib/razorpay-config";
 
 const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY
   ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
   : null;
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-
-function getRazorpay() {
-  const keyId = process.env.RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
-  if (!keyId || !keySecret) return null;
-  return new Razorpay({ key_id: keyId, key_secret: keySecret });
-}
 
 export async function POST(request) {
   try {
@@ -57,10 +50,11 @@ export async function POST(request) {
       );
     }
 
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
-    if (!keySecret) {
+    const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim();
+    const configError = getRazorpayConfigError();
+    if (!keySecret || configError) {
       return NextResponse.json(
-        { success: false, message: "Payment gateway is not configured." },
+        { success: false, message: configError || "Payment gateway is not configured." },
         { status: 503 }
       );
     }
@@ -85,10 +79,10 @@ export async function POST(request) {
       );
     }
 
-    const razorpay = getRazorpay();
+    const { client: razorpay } = createRazorpayClient();
     if (!razorpay) {
       return NextResponse.json(
-        { success: false, message: "Payment gateway is not configured." },
+        { success: false, message: getRazorpayConfigError() || "Payment gateway is not configured." },
         { status: 503 }
       );
     }
