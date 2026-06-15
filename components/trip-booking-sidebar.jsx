@@ -3,11 +3,13 @@
 import { useMemo, useState } from "react";
 import { CheckCircle2, MessageCircle, Plane } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DiscountCountdown } from "@/components/discount-countdown";
 import {
   buildWhatsAppMessage,
   buildWhatsAppUrl,
   getDefaultBookingDate,
 } from "@/lib/trip-booking";
+import { getTripListPrice } from "@/lib/trip-pricing";
 import { contactDetails } from "@/lib/site-data";
 import { TripBookingModal } from "@/components/trip-booking-modal";
 import { TripDatePicker } from "@/components/trip-date-picker";
@@ -16,8 +18,8 @@ export function TripBookingSidebar({ trip, departureDate, onDepartureChange, raz
   const [bookingOpen, setBookingOpen] = useState(false);
 
   const defaultDate = useMemo(() => getDefaultBookingDate(), []);
-
   const selectedDate = departureDate || defaultDate;
+  const listPrice = useMemo(() => getTripListPrice(trip), [trip]);
 
   const whatsappUrl = buildWhatsAppUrl(
     contactDetails.whatsapp,
@@ -37,10 +39,23 @@ export function TripBookingSidebar({ trip, departureDate, onDepartureChange, raz
           <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
             Starting from
           </p>
+          {listPrice.discountActive && (
+            <p className="mt-1 text-sm text-zinc-400 line-through tabular-nums">
+              {listPrice.displayPriceBase}
+            </p>
+          )}
           <p className="mt-1 text-2xl font-bold tabular-nums sm:text-3xl">
-            {trip.price}
+            {listPrice.displayPrice}
             <span className="ml-1 text-sm font-medium text-zinc-400 sm:text-base">/person</span>
           </p>
+          {listPrice.discountActive && (
+            <div className="mt-2">
+              <p className="text-xs font-medium text-amber-300">
+                {listPrice.discountPercent}% off
+              </p>
+              <DiscountCountdown endsAt={listPrice.discountEndsAt} className="mt-2 text-amber-200" />
+            </div>
+          )}
         </div>
 
         <div className="space-y-4 p-4 sm:space-y-5 sm:p-6">
@@ -113,7 +128,7 @@ export function TripBookingSidebar({ trip, departureDate, onDepartureChange, raz
           <div className="mx-auto w-full max-w-lg">
             <div className="mb-2.5">
               <p className="text-base font-bold tabular-nums text-white">
-                {trip.price}
+                {listPrice.displayPrice}
                 <span className="text-sm font-medium text-zinc-400">/ person</span>
               </p>
               <p className="mt-0.5 text-[10px] text-zinc-400">+5% GST · taxes as applicable</p>

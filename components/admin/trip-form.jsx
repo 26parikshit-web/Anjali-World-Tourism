@@ -9,6 +9,16 @@ import { revalidateTripsOnServer } from "@/lib/revalidate-trips-client";
 import { pickTripRow } from "@/lib/trip-row";
 import { normalizeGallery } from "@/lib/trip-media";
 import { TripMediaEditor } from "@/components/admin/trip-media-editor";
+import {
+  TripPricingEditor,
+  fromDatetimeLocalValue,
+  toDatetimeLocalValue,
+} from "@/components/admin/trip-pricing-editor";
+import {
+  buildPricingPackagesFromFormRows,
+  deriveLegacyPriceLabel,
+  pricingPackagesToFormRows,
+} from "@/lib/trip-pricing";
 
 const categories = [
   "Spiritual Journey",
@@ -66,10 +76,22 @@ export function TripForm({ trip }) {
       tags: trip?.tags || [],
       is_featured: trip?.is_featured || false,
       is_active: trip?.is_active ?? true,
+      pricing_packages: trip?.pricing_packages || [],
+      discount_percent: trip?.discount_percent ?? "",
+      discount_ends_at: trip?.discount_ends_at || null,
     };
   };
 
   const [formData, setFormData] = useState(getInitialFormData());
+  const [pricingRows, setPricingRows] = useState(() => pricingPackagesToFormRows(trip));
+  const [discountPercent, setDiscountPercent] = useState(
+    trip?.discount_percent != null && trip?.discount_percent !== ""
+      ? String(trip.discount_percent)
+      : ""
+  );
+  const [discountEndsAt, setDiscountEndsAt] = useState(
+    toDatetimeLocalValue(trip?.discount_ends_at)
+  );
   const [isLoadedFromUpload, setIsLoadedFromUpload] = useState(false);
 
   // Check if data was loaded from upload
@@ -144,8 +166,25 @@ export function TripForm({ trip }) {
     setError(null);
 
     try {
+      const pricing_packages = buildPricingPackagesFromFormRows(pricingRows);
+      if (pricing_packages.length === 0) {
+        throw new Error("Add at least a Standard package price.");
+      }
+
+      const parsedDiscount = discountPercent ? Number.parseFloat(discountPercent) : null;
+      if (parsedDiscount != null && (parsedDiscount < 0 || parsedDiscount > 100)) {
+        throw new Error("Discount must be between 0 and 100.");
+      }
+      if (parsedDiscount > 0 && !discountEndsAt) {
+        throw new Error("Set an end date/time for the discount.");
+      }
+
       const dataToSave = pickTripRow({
         ...formData,
+        price: deriveLegacyPriceLabel(pricing_packages),
+        pricing_packages,
+        discount_percent: parsedDiscount > 0 ? parsedDiscount : null,
+        discount_ends_at: parsedDiscount > 0 ? fromDatetimeLocalValue(discountEndsAt) : null,
         gallery: normalizeGallery(formData.gallery),
         highlights: formData.highlights.filter(Boolean),
         inclusions: formData.inclusions.filter(Boolean),
@@ -316,16 +355,13 @@ export function TripForm({ trip }) {
 
           <div>
             <label className="block text-xs font-medium text-zinc-700 mb-1.5">
-              Price
+              Display price (auto)
             </label>
             <input
               type="text"
-              value={formData.price}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, price: e.target.value }))
-              }
-              placeholder="e.g., ₹25,000"
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm outline-none focus:border-zinc-400 focus:bg-white"
+              value={deriveLegacyPriceLabel(buildPricingPackagesFromFormRows(pricingRows)) || formData.price}
+              readOnly
+              className="w-full rounded-xl border border-zinc-200 bg-zinc-100 px-4 py-2.5 text-sm text-zinc-600"
             />
           </div>
 
@@ -406,6 +442,20 @@ export function TripForm({ trip }) {
             <span className="text-sm text-zinc-700">Featured</span>
           </label>
         </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-zinc-200 p-6">
+        <h2 className="text-base font-semibold text-zinc-900 mb-4">Pricing & packages</h2>
+        <TripPricingEditor
+          rows={pricingRows}
+          discountPercent={discountPercent}
+          discountEndsAt={discountEndsAt}
+          onRowsChange={setPricingRows}
+          onDiscountChange={({ discountPercent: nextPercent, discountEndsAt: nextEndsAt }) => {
+            if (nextPercent !== undefined) setDiscountPercent(nextPercent);
+            if (nextEndsAt !== undefined) setDiscountEndsAt(nextEndsAt);
+          }}
+        />
       </div>
 
       {/* Images & Videos */}

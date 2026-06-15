@@ -1,21 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Calendar, CreditCard, Minus, Plus, User, Mail, Phone, X, Info, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  computeTotalWithGst,
-  formatFullDate,
-  formatINR,
-  getTripEndDate,
-  parsePriceToRupees,
-} from "@/lib/trip-booking";
+import { DiscountCountdown } from "@/components/discount-countdown";
+import { formatFullDate, formatINR, getTripEndDate } from "@/lib/trip-booking";
 import { contactDetails } from "@/lib/site-data";
 import {
   sanitizeBookingContact,
   validateBookingDetails,
 } from "@/lib/form-validation";
 import { TripDatePicker } from "@/components/trip-date-picker";
+import { cn } from "@/lib/utils";
 
 function loadRazorpayScript() {
   return new Promise((resolve) => {
@@ -43,14 +39,43 @@ export function TripBookingModal({
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [pax, setPax] = useState(1);
+  const [selectedPackage, setSelectedPackage] = useState("standard");
+  const [quote, setQuote] = useState(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
   const [step, setStep] = useState("details");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  const perPerson = parsePriceToRupees(trip.price);
-  const { subtotal, gst, total } = computeTotalWithGst(perPerson, pax);
   const endDate = departureDate ? getTripEndDate(departureDate, trip.itinerary?.length || 1) : null;
+
+  const fetchQuote = useCallback(async () => {
+    if (!trip?.slug) return;
+    setQuoteLoading(true);
+    try {
+      const params = new URLSearchParams({
+        pax: String(pax),
+        package: selectedPackage,
+      });
+      const res = await fetch(`/api/trips/${trip.slug}/quote?${params}`);
+      const data = await res.json();
+      if (!res.ok || !data.valid) {
+        throw new Error(data.message || "Could not load pricing.");
+      }
+      setQuote(data);
+      setError("");
+    } catch (err) {
+      setQuote(null);
+      setError(err.message || "Could not load pricing.");
+    } finally {
+      setQuoteLoading(false);
+    }
+  }, [trip?.slug, pax, selectedPackage]);
+
+  useEffect(() => {
+    if (!open) return;
+    fetchQuote();
+  }, [open, fetchQuote]);
 
   useEffect(() => {
     if (!open) return;
@@ -71,6 +96,7 @@ export function TripBookingModal({
       setError("");
       setSuccessMessage("");
       setLoading(false);
+      setSelectedPackage("standard");
     }
   }, [open]);
 
@@ -80,6 +106,10 @@ export function TripBookingModal({
     const result = validateBookingDetails({ name, email, phone });
     if (!result.valid) {
       setError(result.message);
+      return false;
+    }
+    if (!quote?.valid) {
+      setError("Pricing is not available. Please try again.");
       return false;
     }
     setError("");
@@ -97,9 +127,10 @@ export function TripBookingModal({
   const buildBookingNotes = (phoneNumber = phone) => {
     const lines = [
       `Trip: ${trip.name}`,
+      `Package: ${quote?.packageLabel || "Standard"}`,
       `Duration: ${trip.duration || "N/A"}`,
       `Travelers: ${pax}`,
-      `Estimated total: ${formatINR(total)} (incl. 5% GST)`,
+      `Estimated total: ${quote?.totalLabel || "N/A"} (incl. ${quote?.gstPercent || 5}% GST)`,
     ];
     if (departureDate) {
       lines.push(`Departure: ${formatFullDate(departureDate)}`);
@@ -127,7 +158,7 @@ export function TripBookingModal({
           place: trip.name,
           passengers: String(pax),
           duration: departureDate ? formatFullDate(departureDate) : trip.duration,
-          budget: `${formatINR(total)} (${pax} pax, incl. GST)`,
+          budget: `${quote.totalLabel} (${quote.packageLabel}, ${pax} pax, incl. GST)`,
         }),
       });
 
@@ -180,7 +211,7 @@ export function TripBookingModal({
         body: JSON.stringify({
           tripSlug: trip.slug,
           tripName: trip.name,
-          amount: total,
+          packageKey: selectedPackage,
           pax,
           name: contact.name,
           email: contact.email,
@@ -199,7 +230,7 @@ export function TripBookingModal({
         amount: orderData.amount,
         currency: orderData.currency,
         name: "Anjali World Tourism",
-        description: `${trip.name} — ${pax} traveler${pax > 1 ? "s" : ""}`,
+        description: `${trip.name} — ${quote.packageLabel} — ${pax} traveler${pax > 1 ? "s" : ""}`,
         order_id: orderData.orderId,
         prefill: { name: contact.name, email: contact.email, contact: contact.phone },
         theme: { color: "#18181b" },
@@ -211,12 +242,12 @@ export function TripBookingModal({
               ...response,
               tripSlug: trip.slug,
               tripName: trip.name,
+              packageKey: selectedPackage,
               pax,
               name: contact.name,
               email: contact.email,
               phone: contact.phone,
               departureDate: departureDate?.toISOString(),
-              amount: total,
             }),
           });
 
@@ -253,6 +284,10 @@ export function TripBookingModal({
   const actionSubtitle = razorpayEnabled
     ? "Pay online now, send an enquiry, or book a call with our team."
     : "Online payments are coming soon. For now, send an enquiry or book a call with our team.";
+
+  const packages = quote?.packages?.length
+    ? quote.packages
+    : [{ key: "standard", label: "Standard", priceLabel: trip.price }];
 
   return (
     <div
@@ -303,7 +338,7 @@ export function TripBookingModal({
             <div className="mt-5 rounded-xl border border-zinc-200 bg-zinc-50 p-3.5 text-sm text-zinc-600 sm:mt-6 sm:p-4">
               <p className="font-semibold text-zinc-900">{trip.name}</p>
               <p className="mt-1">
-                {pax} traveler{pax > 1 ? "s" : ""} · {formatINR(total)} total
+                {quote?.packageLabel} · {pax} traveler{pax > 1 ? "s" : ""} · {quote?.totalLabel} total
               </p>
               {departureDate && (
                 <p className="mt-1">Departure: {formatFullDate(departureDate)}</p>
@@ -326,7 +361,7 @@ export function TripBookingModal({
                   <div className="min-w-0 flex-1 sm:mt-3">
                     <span className="block text-base font-semibold">Pay Now</span>
                     <span className="mt-0.5 block text-xs text-zinc-300 sm:mt-1">
-                      Secure checkout via Razorpay · {formatINR(total)}
+                      Secure checkout via Razorpay · {quote?.totalLabel}
                     </span>
                   </div>
                 </button>
@@ -382,147 +417,200 @@ export function TripBookingModal({
                   />
 
                   <div className="rounded-xl border border-zinc-200 p-3.5 sm:p-4">
-                <h3 className="mb-4 text-sm font-semibold text-zinc-900">Traveler Details</h3>
-                <div className="space-y-3">
-                  <label className="block">
-                    <span className="sr-only">Full Name</span>
-                    <span className="relative block">
-                      <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-                      <input
-                        type="text"
-                        placeholder="Full Name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        maxLength={100}
-                        autoComplete="name"
-                        className="w-full rounded-xl border border-zinc-200 py-2.5 pl-10 pr-4 text-base outline-none transition-colors focus:border-zinc-900 sm:py-3 sm:text-sm"
-                      />
-                    </span>
-                  </label>
-                  <label className="block">
-                    <span className="sr-only">Email</span>
-                    <span className="relative block">
-                      <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-                      <input
-                        type="email"
-                        placeholder="Email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        maxLength={254}
-                        autoComplete="email"
-                        inputMode="email"
-                        className="w-full rounded-xl border border-zinc-200 py-2.5 pl-10 pr-4 text-base outline-none transition-colors focus:border-zinc-900 sm:py-3 sm:text-sm"
-                      />
-                    </span>
-                  </label>
-                  <label className="block">
-                    <span className="sr-only">Phone Number</span>
-                    <span className="relative block">
-                      <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-                      <input
-                        type="tel"
-                        placeholder="Phone Number"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        maxLength={15}
-                        autoComplete="tel"
-                        inputMode="tel"
-                        className="w-full rounded-xl border border-zinc-200 py-2.5 pl-10 pr-4 text-base outline-none transition-colors focus:border-zinc-900 sm:py-3 sm:text-sm"
-                      />
-                    </span>
-                  </label>
-                </div>
-                <p className="mt-3 flex items-center gap-1.5 text-[11px] text-zinc-500">
-                  <Info className="h-3.5 w-3.5 shrink-0" />
-                  You can fill other passenger details later
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-zinc-200 p-3.5 sm:p-4">
-                <h3 className="mb-3 text-sm font-semibold text-zinc-900">Package Options</h3>
-                <div className="relative rounded-xl bg-zinc-900 px-4 py-3 text-white">
-                  <span className="absolute -top-2.5 left-3 max-w-[calc(100%-1.5rem)] truncate rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-zinc-900">
-                    {trip.price}
-                  </span>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold">Standard</span>
-                    <span className="text-amber-400">✓</span>
+                    <h3 className="mb-4 text-sm font-semibold text-zinc-900">Traveler Details</h3>
+                    <div className="space-y-3">
+                      <label className="block">
+                        <span className="sr-only">Full Name</span>
+                        <span className="relative block">
+                          <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                          <input
+                            type="text"
+                            placeholder="Full Name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            maxLength={100}
+                            autoComplete="name"
+                            className="w-full rounded-xl border border-zinc-200 py-2.5 pl-10 pr-4 text-base outline-none transition-colors focus:border-zinc-900 sm:py-3 sm:text-sm"
+                          />
+                        </span>
+                      </label>
+                      <label className="block">
+                        <span className="sr-only">Email</span>
+                        <span className="relative block">
+                          <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                          <input
+                            type="email"
+                            placeholder="Email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            maxLength={254}
+                            autoComplete="email"
+                            inputMode="email"
+                            className="w-full rounded-xl border border-zinc-200 py-2.5 pl-10 pr-4 text-base outline-none transition-colors focus:border-zinc-900 sm:py-3 sm:text-sm"
+                          />
+                        </span>
+                      </label>
+                      <label className="block">
+                        <span className="sr-only">Phone Number</span>
+                        <span className="relative block">
+                          <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                          <input
+                            type="tel"
+                            placeholder="Phone Number"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            maxLength={15}
+                            autoComplete="tel"
+                            inputMode="tel"
+                            className="w-full rounded-xl border border-zinc-200 py-2.5 pl-10 pr-4 text-base outline-none transition-colors focus:border-zinc-900 sm:py-3 sm:text-sm"
+                          />
+                        </span>
+                      </label>
+                    </div>
+                    <p className="mt-3 flex items-center gap-1.5 text-[11px] text-zinc-500">
+                      <Info className="h-3.5 w-3.5 shrink-0" />
+                      You can fill other passenger details later
+                    </p>
                   </div>
-                </div>
-              </div>
 
-              {error && (
-                <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
-              )}
-            </div>
-
-            <div className="order-1 min-w-0 border-b border-zinc-200 bg-zinc-50 p-4 sm:p-6 md:order-2 md:border-b-0 md:border-l md:rounded-r-2xl">
-              <h3 className="line-clamp-2 break-words text-base font-semibold text-zinc-900">{trip.name}</h3>
-
-              {departureDate && endDate && (
-                <div className="mt-3 space-y-2 text-xs text-zinc-600 sm:mt-4">
-                  <p>{formatFullDate(departureDate)}</p>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-zinc-900">
-                      {trip.duration}
-                    </span>
+                  <div className="rounded-xl border border-zinc-200 p-3.5 sm:p-4">
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="text-sm font-semibold text-zinc-900">Package Options</h3>
+                      {quote?.discount?.active && (
+                        <DiscountCountdown
+                          endsAt={quote.discount.endsAt}
+                          onExpire={fetchQuote}
+                        />
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      {packages.map((pkg) => {
+                        const isSelected = selectedPackage === pkg.key;
+                        return (
+                          <button
+                            key={pkg.key}
+                            type="button"
+                            onClick={() => setSelectedPackage(pkg.key)}
+                            className={cn(
+                              "relative w-full rounded-xl px-4 py-3 text-left transition",
+                              isSelected
+                                ? "bg-zinc-900 text-white"
+                                : "border border-zinc-200 bg-white text-zinc-900 hover:border-zinc-300"
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                "absolute -top-2.5 left-3 max-w-[calc(100%-1.5rem)] truncate rounded-full px-2 py-0.5 text-[10px] font-bold",
+                                isSelected
+                                  ? "bg-amber-400 text-zinc-900"
+                                  : "bg-zinc-100 text-zinc-700"
+                              )}
+                            >
+                              {pkg.priceLabel}
+                            </span>
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-semibold">{pkg.label}</span>
+                              {isSelected && <span className="text-amber-400">✓</span>}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <p>{formatFullDate(endDate)}</p>
-                </div>
-              )}
 
-              <div className="mt-4 flex items-center justify-between text-sm sm:mt-5">
-                <span className="text-zinc-600">No. of Pax :</span>
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setPax((n) => Math.max(1, n - 1))}
-                    className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-900 text-white transition-colors hover:bg-zinc-700"
-                    aria-label="Decrease travelers"
+                  {error && (
+                    <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+                  )}
+                </div>
+
+                <div className="order-1 min-w-0 border-b border-zinc-200 bg-zinc-50 p-4 sm:p-6 md:order-2 md:border-b-0 md:border-l md:rounded-r-2xl">
+                  <h3 className="line-clamp-2 break-words text-base font-semibold text-zinc-900">{trip.name}</h3>
+
+                  {departureDate && endDate && (
+                    <div className="mt-3 space-y-2 text-xs text-zinc-600 sm:mt-4">
+                      <p>{formatFullDate(departureDate)}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold text-zinc-900">
+                          {trip.duration}
+                        </span>
+                      </div>
+                      <p>{formatFullDate(endDate)}</p>
+                    </div>
+                  )}
+
+                  <div className="mt-4 flex items-center justify-between text-sm sm:mt-5">
+                    <span className="text-zinc-600">No. of Pax :</span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setPax((n) => Math.max(1, n - 1))}
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-900 text-white transition-colors hover:bg-zinc-700"
+                        aria-label="Decrease travelers"
+                      >
+                        <Minus className="h-3.5 w-3.5" />
+                      </button>
+                      <span className="w-6 text-center font-semibold tabular-nums">{pax}</span>
+                      <button
+                        type="button"
+                        onClick={() => setPax((n) => Math.min(20, n + 1))}
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-900 text-white transition-colors hover:bg-zinc-700"
+                        aria-label="Increase travelers"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 border-t border-zinc-200 pt-4 sm:mt-6">
+                    {quoteLoading ? (
+                      <p className="text-sm text-zinc-500">Updating price…</p>
+                    ) : quote ? (
+                      <>
+                        <div className="flex flex-wrap items-end gap-2">
+                          {quote.discount?.active && (
+                            <p className="text-sm text-zinc-400 line-through tabular-nums">
+                              {quote.perPersonBaseLabel}
+                            </p>
+                          )}
+                          <p className="text-xl font-bold tabular-nums text-zinc-900 sm:text-2xl">
+                            {quote.perPersonLabel}
+                            <span className="text-sm font-medium text-zinc-500">/ person</span>
+                          </p>
+                        </div>
+                        {quote.discount?.active && (
+                          <p className="mt-1 text-xs font-medium text-emerald-600">
+                            {quote.discount.percent}% limited-time discount applied
+                          </p>
+                        )}
+                        <p className="mt-1 text-xs text-zinc-500">+{quote.gstPercent}% GST</p>
+                        <div className="mt-3 space-y-1 text-xs text-zinc-600">
+                          <div className="flex min-w-0 justify-between gap-2">
+                            <span className="min-w-0 shrink">Subtotal ({pax} pax)</span>
+                            <span className="shrink-0 tabular-nums">{quote.subtotalLabel}</span>
+                          </div>
+                          <div className="flex min-w-0 justify-between gap-2">
+                            <span className="min-w-0 shrink">GST ({quote.gstPercent}%)</span>
+                            <span className="shrink-0 tabular-nums">{quote.gstLabel}</span>
+                          </div>
+                          <div className="flex min-w-0 justify-between gap-2 border-t border-zinc-200 pt-2 font-semibold text-zinc-900">
+                            <span className="min-w-0 shrink">Total</span>
+                            <span className="shrink-0 tabular-nums">{quote.totalLabel}</span>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-sm text-zinc-500">Price unavailable</p>
+                    )}
+                  </div>
+
+                  <Button
+                    onClick={handleBookNow}
+                    disabled={quoteLoading || !quote}
+                    className="mt-5 hidden w-full rounded-full bg-zinc-900 py-4 text-sm font-semibold text-white hover:bg-zinc-800 sm:mt-6 md:inline-flex"
                   >
-                    <Minus className="h-3.5 w-3.5" />
-                  </button>
-                  <span className="w-6 text-center font-semibold tabular-nums">{pax}</span>
-                  <button
-                    type="button"
-                    onClick={() => setPax((n) => Math.min(20, n + 1))}
-                    className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-900 text-white transition-colors hover:bg-zinc-700"
-                    aria-label="Increase travelers"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                  </button>
+                    Book Now
+                  </Button>
                 </div>
-              </div>
-
-              <div className="mt-4 border-t border-zinc-200 pt-4 sm:mt-6">
-                <p className="text-xl font-bold tabular-nums text-zinc-900 sm:text-2xl">
-                  {formatINR(perPerson)}
-                  <span className="text-sm font-medium text-zinc-500">/ person</span>
-                </p>
-                <p className="mt-1 text-xs text-zinc-500">+5% GST</p>
-                <div className="mt-3 space-y-1 text-xs text-zinc-600">
-                  <div className="flex min-w-0 justify-between gap-2">
-                    <span className="min-w-0 shrink">Subtotal ({pax} pax)</span>
-                    <span className="shrink-0 tabular-nums">{formatINR(subtotal)}</span>
-                  </div>
-                  <div className="flex min-w-0 justify-between gap-2">
-                    <span className="min-w-0 shrink">GST (5%)</span>
-                    <span className="shrink-0 tabular-nums">{formatINR(gst)}</span>
-                  </div>
-                  <div className="flex min-w-0 justify-between gap-2 border-t border-zinc-200 pt-2 font-semibold text-zinc-900">
-                    <span className="min-w-0 shrink">Total</span>
-                    <span className="shrink-0 tabular-nums">{formatINR(total)}</span>
-                  </div>
-                </div>
-              </div>
-
-              <Button
-                onClick={handleBookNow}
-                className="mt-5 hidden w-full rounded-full bg-zinc-900 py-4 text-sm font-semibold text-white hover:bg-zinc-800 sm:mt-6 md:inline-flex"
-              >
-                Book Now
-              </Button>
-            </div>
               </div>
             </div>
 
@@ -530,7 +618,7 @@ export function TripBookingModal({
               <div className="mx-auto flex w-full max-w-full items-center gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-base font-bold tabular-nums text-zinc-900 sm:text-lg">
-                    {formatINR(total)}
+                    {quote?.totalLabel || "—"}
                   </p>
                   <p className="truncate text-xs text-zinc-500">
                     {pax} traveler{pax > 1 ? "s" : ""} · incl. GST
@@ -538,6 +626,7 @@ export function TripBookingModal({
                 </div>
                 <Button
                   onClick={handleBookNow}
+                  disabled={quoteLoading || !quote}
                   className="shrink-0 rounded-full bg-zinc-900 px-5 py-3 text-sm font-semibold text-white hover:bg-zinc-800"
                 >
                   Book Now

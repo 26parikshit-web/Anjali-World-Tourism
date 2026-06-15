@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
+import Razorpay from "razorpay";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import { FEATURE_FLAG_KEYS, isFeatureEnabled } from "@/lib/feature-flags";
@@ -7,12 +8,20 @@ import {
   sanitizeBookingContact,
   validateBookingDetails,
 } from "@/lib/form-validation";
+import { computeTripQuote, fetchTripForPricing, paiseToRupees } from "@/lib/trip-pricing";
 
 const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY
   ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
   : null;
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
+function getRazorpay() {
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  if (!keyId || !keySecret) return null;
+  return new Razorpay({ key_id: keyId, key_secret: keySecret });
+}
 
 export async function POST(request) {
   try {
@@ -30,12 +39,12 @@ export async function POST(request) {
       razorpay_signature,
       tripSlug,
       tripName,
+      packageKey = "standard",
       pax,
       name,
       email,
       phone,
       departureDate,
-      amount,
     } = body;
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -73,7 +82,55 @@ export async function POST(request) {
       );
     }
 
+    const razorpay = getRazorpay();
+    if (!razorpay) {
+      return NextResponse.json(
+        { success: false, message: "Payment gateway is not configured." },
+        { status: 503 }
+      );
+    }
+
+    const order = await razorpay.orders.fetch(razorpay_order_id);
+    const resolvedPackageKey = order?.notes?.package_key || packageKey;
+
+    const trip = await fetchTripForPricing(tripSlug);
+    if (!trip) {
+      return NextResponse.json(
+        { success: false, message: "Trip not found or inactive." },
+        { status: 404 }
+      );
+    }
+
+    const quote = computeTripQuote(trip, {
+      packageKey: resolvedPackageKey,
+      pax,
+      now: new Date(),
+    });
+
+    if (!quote.valid) {
+      return NextResponse.json(
+        { success: false, message: quote.message },
+        { status: 400 }
+      );
+    }
+
+    if (Number(order.amount) !== quote.totalPaise) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Payment amount does not match the current trip price.",
+        },
+        { status: 400 }
+      );
+    }
+
     const contact = sanitizeBookingContact({ name, email, phone });
+    const amountBeforeDiscount = quote.discount.active
+      ? (() => {
+          const baseSubtotal = paiseToRupees(quote.perPersonPaiseBase * quote.pax);
+          return baseSubtotal + Math.round(baseSubtotal * (quote.gstPercent / 100));
+        })()
+      : null;
 
     let bookingId = null;
 
@@ -87,8 +144,11 @@ export async function POST(request) {
             customer_name: contact.name,
             customer_email: contact.email,
             customer_phone: contact.phone,
-            pax: pax || 1,
-            amount: amount,
+            pax: quote.pax,
+            package_tier: quote.packageKey,
+            discount_percent: quote.discount.active ? quote.discount.percent : null,
+            amount_before_discount: amountBeforeDiscount,
+            amount: quote.totalRupees,
             departure_date: departureDate || null,
             razorpay_order_id,
             razorpay_payment_id,
@@ -114,11 +174,17 @@ export async function POST(request) {
           html: `
             <h2>New Trip Booking</h2>
             <p><strong>Trip:</strong> ${tripName}</p>
+            <p><strong>Package:</strong> ${quote.packageLabel}</p>
             <p><strong>Customer:</strong> ${contact.name}</p>
             <p><strong>Email:</strong> ${contact.email}</p>
             <p><strong>Phone:</strong> ${contact.phone}</p>
-            <p><strong>Travelers:</strong> ${pax}</p>
-            <p><strong>Amount:</strong> ₹${amount}</p>
+            <p><strong>Travelers:</strong> ${quote.pax}</p>
+            <p><strong>Amount:</strong> ₹${quote.totalRupees}</p>
+            ${
+              quote.discount.active
+                ? `<p><strong>Discount:</strong> ${quote.discount.percent}% (applied server-side)</p>`
+                : ""
+            }
             <p><strong>Departure:</strong> ${departureDate || "Not specified"}</p>
             <p><strong>Payment ID:</strong> ${razorpay_payment_id}</p>
           `,

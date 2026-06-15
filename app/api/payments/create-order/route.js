@@ -5,6 +5,7 @@ import {
   sanitizeBookingContact,
   validateBookingDetails,
 } from "@/lib/form-validation";
+import { computeTripQuote, fetchTripForPricing } from "@/lib/trip-pricing";
 
 function getRazorpay() {
   const keyId = process.env.RAZORPAY_KEY_ID;
@@ -23,9 +24,18 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { tripSlug, tripName, amount, pax, name, email, phone, departureDate } = body;
+    const {
+      tripSlug,
+      tripName,
+      packageKey = "standard",
+      pax,
+      name,
+      email,
+      phone,
+      departureDate,
+    } = body;
 
-    if (!tripSlug || !tripName || !amount) {
+    if (!tripSlug || !tripName) {
       return NextResponse.json(
         { success: false, message: "Missing required booking fields." },
         { status: 400 }
@@ -36,6 +46,27 @@ export async function POST(request) {
     if (!validation.valid) {
       return NextResponse.json(
         { success: false, message: validation.message },
+        { status: 400 }
+      );
+    }
+
+    const trip = await fetchTripForPricing(tripSlug);
+    if (!trip) {
+      return NextResponse.json(
+        { success: false, message: "Trip not found or inactive." },
+        { status: 404 }
+      );
+    }
+
+    const quote = computeTripQuote(trip, {
+      packageKey,
+      pax,
+      now: new Date(),
+    });
+
+    if (!quote.valid) {
+      return NextResponse.json(
+        { success: false, message: quote.message },
         { status: 400 }
       );
     }
@@ -53,7 +84,7 @@ export async function POST(request) {
       );
     }
 
-    const amountPaise = Math.round(Number(amount) * 100);
+    const amountPaise = quote.totalPaise;
     if (amountPaise < 100) {
       return NextResponse.json(
         { success: false, message: "Invalid payment amount." },
@@ -68,11 +99,13 @@ export async function POST(request) {
       notes: {
         trip_slug: tripSlug,
         trip_name: tripName,
-        pax: String(pax || 1),
+        package_key: quote.packageKey,
+        pax: String(quote.pax),
         customer_name: contact.name,
         customer_email: contact.email,
         customer_phone: contact.phone,
         departure_date: departureDate || "",
+        discount_percent: String(quote.discount.active ? quote.discount.percent : 0),
       },
     });
 
@@ -82,6 +115,11 @@ export async function POST(request) {
       amount: order.amount,
       currency: order.currency,
       keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID,
+      quote: {
+        packageKey: quote.packageKey,
+        total: quote.totalRupees,
+        totalPaise: quote.totalPaise,
+      },
     });
   } catch (error) {
     console.error("Create order error:", error);
