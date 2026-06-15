@@ -69,17 +69,44 @@ const whyUs = [
   },
 ];
 
-const headlineLines = [
-  "Where meaningful journeys",
-  "become lifelong memories.",
-];
-
 const wordVariants = {
   hidden: { y: "0.7em", opacity: 0 },
   show: { y: 0, opacity: 1 },
 };
 
-function HorizontalScrollSection({ title, subtitle, description, items, id, bgImage, bgVideo }) {
+function SectionBackground({ background, alt }) {
+  if (!background) return null;
+
+  if (background.type === "video") {
+    return (
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        poster={background.poster || undefined}
+        className="optimized-video h-full w-full object-cover"
+      >
+        {(background.sources || [{ src: background.url, type: "video/mp4" }]).map(
+          (source) => (
+            <source key={source.src} src={source.src} type={source.type} />
+          )
+        )}
+      </video>
+    );
+  }
+
+  return (
+    <img
+      src={background.url}
+      alt={alt}
+      className="h-full w-full object-cover"
+    />
+  );
+}
+
+function HorizontalScrollSection({ title, subtitle, description, items, id, background }) {
   const containerRef = useRef(null);
   const scrollRef = useRef(null);
 
@@ -117,26 +144,10 @@ function HorizontalScrollSection({ title, subtitle, description, items, id, bgIm
   return (
     <section ref={containerRef} id={id} className="h-screen w-full overflow-hidden relative">
       <div className="absolute inset-0 z-0 overflow-hidden">
-        {bgVideo ? (
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            poster="/videos/spiritual-poster.jpg"
-            className="optimized-video w-full h-full object-cover"
-          >
-            <source src="/videos/spiritual-bg.webm" type="video/webm" />
-            <source src="/videos/spiritual-bg.mp4" type="video/mp4" />
-          </video>
-        ) : (
-          <img
-            src={bgImage}
-            alt="Himalayan mountain landscape for friends getaway travel packages in India"
-            className="w-full h-full object-cover"
-          />
-        )}
+        <SectionBackground
+          background={background}
+          alt={`${title} section background`}
+        />
         <div className="absolute inset-0 bg-black/50" />
       </div>
       <div className="h-full flex items-center relative z-10">
@@ -173,25 +184,25 @@ function HorizontalScrollSection({ title, subtitle, description, items, id, bgIm
   );
 }
 
-export function HomePage({ spiritualJourneys, friendsGetaway }) {
+export function HomePage({ spiritualJourneys, friendsGetaway, homeContent }) {
+  const headlineLines = homeContent?.hero?.headlineLines || [
+    "Where meaningful journeys",
+    "become lifelong memories.",
+  ];
+  const heroDescription =
+    homeContent?.hero?.description ||
+    "Anjali World Tourism crafts editorial-quality itineraries for spiritual pilgrimages, friend getaways, family holidays, and honeymoons across India — with hands-on planners, not algorithms.";
+
   return (
     <div className="bg-white text-zinc-900">
       <OmLoader />
 
       <section className="min-h-screen flex items-center justify-center relative overflow-hidden bg-zinc-950">
         <div className="absolute inset-0 z-0">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            poster="/videos/hero-poster.jpg"
-            className="optimized-video w-full h-full object-cover"
-          >
-            <source src="/videos/hero-bg.webm" type="video/webm" />
-            <source src="/videos/hero-bg.mp4" type="video/mp4" />
-          </video>
+          <SectionBackground
+            background={homeContent?.hero?.background}
+            alt="Anjali World Tourism hero background"
+          />
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-black/70" />
         </div>
 
@@ -231,9 +242,7 @@ export function HomePage({ spiritualJourneys, friendsGetaway }) {
             transition={{ duration: 0.7, delay: 0.6 }}
             className="mt-6 text-base sm:text-lg text-zinc-300 max-w-2xl mx-auto leading-relaxed"
           >
-            Anjali World Tourism crafts editorial-quality itineraries for spiritual
-            pilgrimages, friend getaways, family holidays, and honeymoons across India — with
-            hands-on planners, not algorithms.
+            {heroDescription}
           </motion.p>
 
           <motion.div
@@ -303,20 +312,26 @@ export function HomePage({ spiritualJourneys, friendsGetaway }) {
 
       <HorizontalScrollSection
         id="spiritual"
-        subtitle="Spiritual Journeys"
-        title="Sacred Pilgrimage Routes"
-        description="Slow, reverent, logistics-heavy routes designed for darshan, family comfort, and trusted pacing."
+        subtitle={homeContent?.spiritual?.subtitle || "Spiritual Journeys"}
+        title={homeContent?.spiritual?.title || "Sacred Pilgrimage Routes"}
+        description={
+          homeContent?.spiritual?.description ||
+          "Slow, reverent, logistics-heavy routes designed for darshan, family comfort, and trusted pacing."
+        }
         items={spiritualJourneys}
-        bgVideo
+        background={homeContent?.spiritual?.background}
       />
 
       <HorizontalScrollSection
         id="getaway"
-        subtitle="Friends Getaway"
-        title="Group Adventure Escapes"
-        description="Mood-led escapes for friend groups who want scenery, stories, and high-energy shared memories."
+        subtitle={homeContent?.getaway?.subtitle || "Friends Getaway"}
+        title={homeContent?.getaway?.title || "Group Adventure Escapes"}
+        description={
+          homeContent?.getaway?.description ||
+          "Mood-led escapes for friend groups who want scenery, stories, and high-energy shared memories."
+        }
         items={friendsGetaway}
-        bgImage="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2000&q=80"
+        background={homeContent?.getaway?.background}
       />
 
       <section className="relative bg-white py-20 sm:py-28">

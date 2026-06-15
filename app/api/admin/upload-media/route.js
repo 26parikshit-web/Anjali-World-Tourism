@@ -36,10 +36,17 @@ export async function POST(request) {
 
   const formData = await request.formData();
   const file = formData.get("file");
-  const scope = formData.get("scope") === "site-gallery" ? "site-gallery" : "trip";
+  const scopeRaw = String(formData.get("scope") || "trip");
+  const scope =
+    scopeRaw === "site-gallery"
+      ? "site-gallery"
+      : scopeRaw === "home"
+        ? "home"
+        : "trip";
   const tripSlug = sanitizeSlug(formData.get("tripSlug"));
   const tripFolder = formData.get("folder") === "hero" ? "hero" : "gallery";
   const category = sanitizeSlug(formData.get("category") || "general");
+  const homeSection = sanitizeSlug(formData.get("homeSection") || "hero");
 
   if (!file || typeof file === "string") {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -72,7 +79,9 @@ export async function POST(request) {
     const uploadFolder =
       scope === "site-gallery"
         ? `anjali-gallery/${category}`
-        : `anjali-trips/${tripSlug}/${tripFolder}`;
+        : scope === "home"
+          ? `anjali-home/${homeSection}`
+          : `anjali-trips/${tripSlug}/${tripFolder}`;
 
     const result = await new Promise((resolve, reject) => {
       const stream = cld.uploader.upload_stream(

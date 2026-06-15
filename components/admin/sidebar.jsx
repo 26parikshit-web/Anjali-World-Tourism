@@ -13,12 +13,14 @@ import {
   LogOut,
   Menu,
   Settings,
+  Home,
   X,
 } from "lucide-react";
 import { useState } from "react";
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/home", label: "Homepage", icon: Home },
   { href: "/admin/trips", label: "Trips", icon: Map },
   { href: "/admin/reviews", label: "Reviews", icon: Star },
   { href: "/admin/gallery", label: "Gallery", icon: Image },

@@ -1,6 +1,7 @@
 import { HomePage } from "@/components/home/home-page";
 import { JsonLd } from "@/components/seo/json-ld";
 import { getFeaturedTripsByCategory } from "@/lib/data-service";
+import { getHomeContent, resolveHomeContentForPage } from "@/lib/home-content";
 import {
   toHomeTripCard,
   fallbackSpiritualJourneys,
@@ -34,10 +35,13 @@ const SPIRITUAL_JOURNEY_CATEGORY = "Spiritual Journey";
 const FRIENDS_GETAWAY_CATEGORY = "Friends Getaway";
 
 export default async function Page() {
-  const [spiritualFeatured, friendsFeatured] = await Promise.all([
+  const [spiritualFeatured, friendsFeatured, homeContentRaw] = await Promise.all([
     getFeaturedTripsByCategory(SPIRITUAL_JOURNEY_CATEGORY),
     getFeaturedTripsByCategory(FRIENDS_GETAWAY_CATEGORY),
+    getHomeContent(),
   ]);
+
+  const homeContent = resolveHomeContentForPage(homeContentRaw);
 
   const mapFallback = (item) => ({
     ...item,
@@ -60,6 +64,7 @@ export default async function Page() {
       <HomePage
         spiritualJourneys={spiritualJourneys}
         friendsGetaway={friendsGetaway}
+        homeContent={homeContent}
       />
     </>
   );

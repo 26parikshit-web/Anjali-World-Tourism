@@ -146,5 +146,22 @@ CREATE INDEX IF NOT EXISTS idx_gallery_trip_id ON gallery(trip_id);
 CREATE INDEX IF NOT EXISTS idx_contact_status ON contact_submissions(status);
 CREATE INDEX IF NOT EXISTS idx_contact_created ON contact_submissions(created_at DESC);
 
+-- Homepage editable content (singleton)
+CREATE TABLE IF NOT EXISTS home_content (
+  id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  hero JSONB NOT NULL DEFAULT '{}'::jsonb,
+  spiritual JSONB NOT NULL DEFAULT '{}'::jsonb,
+  getaway JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE home_content ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can read home content" ON home_content
+  FOR SELECT USING (true);
+
+CREATE POLICY "Admins can manage home content" ON home_content
+  FOR ALL USING (auth.role() = 'authenticated');
+
 -- Storage: run supabase/migrations/trip-media-storage.sql in Supabase Dashboard
 -- Creates public `trip-media` bucket for trip hero images and gallery uploads
