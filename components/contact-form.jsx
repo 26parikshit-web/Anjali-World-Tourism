@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { validateContactForm } from "@/lib/form-validation";
 import { contactDetails } from "@/lib/site-data";
+import { showError } from "@/lib/toast";
 
 const isSupabaseConfigured = () => {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -21,12 +22,10 @@ const isSupabaseConfigured = () => {
 export function ContactForm({ tripInterest }) {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
-    setError(null);
 
     const formData = new FormData(event.target);
     const data = {
@@ -40,7 +39,7 @@ export function ContactForm({ tripInterest }) {
 
     const validation = validateContactForm(data);
     if (!validation.valid) {
-      setError(validation.message);
+      showError(validation.message, event.currentTarget);
       setLoading(false);
       return;
     }
@@ -68,7 +67,10 @@ export function ContactForm({ tripInterest }) {
       if (submitError) throw submitError;
       setSent(true);
     } catch (err) {
-      setError(`Failed to submit. Please try again or call us at ${contactDetails.phone}.`);
+      showError(
+        `Failed to submit. Please try again or call us at ${contactDetails.phone}.`,
+        event.currentTarget
+      );
       console.error("Contact form error:", err);
     } finally {
       setLoading(false);
@@ -98,13 +100,11 @@ export function ContactForm({ tripInterest }) {
         </div>
       ) : (
         <>
-          {error && (
-            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
-          )}
-
-          <form className="mt-6 grid gap-3" onSubmit={handleSubmit}>
+          <form
+            className="mt-6 grid gap-3"
+            onSubmit={handleSubmit}
+            data-error-anchor
+          >
             <label className="grid gap-1.5">
               <span className="text-xs font-medium text-zinc-700">Name</span>
               <input

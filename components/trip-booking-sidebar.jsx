@@ -172,7 +172,7 @@ export function TripBookingSidebar({
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-50 overflow-hidden rounded-t-2xl border border-white/10 border-b-0 bg-gradient-to-t from-zinc-950/98 via-zinc-900/95 to-zinc-900/90 shadow-[0_-12px_40px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 overflow-hidden rounded-t-2xl border border-white/10 border-b-0 bg-gradient-to-t from-zinc-950/98 via-zinc-900/95 to-zinc-900/90 shadow-[0_-12px_40px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl lg:hidden">
         <div className="px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <div className="mx-auto w-full max-w-lg">
             <div className="mb-2.5">

@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { ParallaxScroll } from "@/components/ui/parallax-scroll";
+import { ModalPortal, MODAL_LAYER_CLASS } from "@/components/modal-portal";
 import { Star, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function ReviewShowcase({ items }) {
   const [selectedId, setSelectedId] = useState(null);
@@ -29,10 +31,14 @@ export function ReviewShowcase({ items }) {
       />
 
       {selectedItem && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-          onClick={() => setSelectedId(null)}
-        >
+        <ModalPortal>
+          <div
+            className={cn(
+              "fixed inset-0 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm",
+              MODAL_LAYER_CLASS
+            )}
+            onClick={() => setSelectedId(null)}
+          >
           <div
             className="relative w-full max-w-lg rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
@@ -92,6 +98,7 @@ export function ReviewShowcase({ items }) {
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
     </div>
   );

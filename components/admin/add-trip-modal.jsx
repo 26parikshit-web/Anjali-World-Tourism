@@ -4,12 +4,14 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { X, Upload, Edit3, Eye, CheckCircle2 } from "lucide-react";
 import { parseTripMessage } from "@/lib/trip-message-parser";
+import { showError } from "@/lib/toast";
+import { ModalPortal, MODAL_LAYER_CLASS } from "@/components/modal-portal";
+import { cn } from "@/lib/utils";
 
 export function AddTripModal({ isOpen, onClose }) {
   const router = useRouter();
   const [selectedOption, setSelectedOption] = useState(null);
   const [uploadedText, setUploadedText] = useState("");
-  const [error, setError] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [parsedPreview, setParsedPreview] = useState(null);
@@ -23,19 +25,17 @@ export function AddTripModal({ isOpen, onClose }) {
     const reader = new FileReader();
     reader.onload = (event) => {
       setUploadedText(event.target.result);
-      setError(null);
       setShowPreview(false);
       setParsedPreview(null);
     };
     reader.onerror = () => {
-      setError("Failed to read file. Please try again.");
+      showError("Failed to read file. Please try again.", "trip-upload");
     };
     reader.readAsText(file);
   };
 
   const handleTextAreaChange = (e) => {
     setUploadedText(e.target.value);
-    setError(null);
     setShowPreview(false);
     setParsedPreview(null);
   };
@@ -66,31 +66,29 @@ export function AddTripModal({ isOpen, onClose }) {
     if (!file) return;
 
     if (!file.name.endsWith(".txt") && !file.name.endsWith(".md")) {
-      setError("Please upload a .txt or .md file.");
+      showError("Please upload a .txt or .md file.", "trip-upload");
       return;
     }
 
     const reader = new FileReader();
     reader.onload = (event) => {
       setUploadedText(event.target.result);
-      setError(null);
       setShowPreview(false);
       setParsedPreview(null);
     };
     reader.onerror = () => {
-      setError("Failed to read file. Please try again.");
+      showError("Failed to read file. Please try again.", "trip-upload");
     };
     reader.readAsText(file);
   };
 
   const handlePreview = () => {
     if (!uploadedText.trim()) {
-      setError("Please upload or paste trip details first.");
+      showError("Please upload or paste trip details first.", "trip-upload");
       return;
     }
 
     setProcessing(true);
-    setError(null);
 
     try {
       const parsedData = parseTripMessage(uploadedText);
@@ -99,7 +97,7 @@ export function AddTripModal({ isOpen, onClose }) {
       setProcessing(false);
     } catch (err) {
       console.error("Parse error:", err);
-      setError(err.message || "Failed to parse trip details. Please check the format.");
+      showError(err.message || "Failed to parse trip details. Please check the format.", "trip-upload");
       setProcessing(false);
     }
   };
@@ -113,12 +111,11 @@ export function AddTripModal({ isOpen, onClose }) {
     }
 
     if (!uploadedText.trim()) {
-      setError("Please upload or paste trip details.");
+      showError("Please upload or paste trip details.", "trip-upload");
       return;
     }
 
     setProcessing(true);
-    setError(null);
 
     try {
       const parsedData = parseTripMessage(uploadedText);
@@ -135,9 +132,10 @@ export function AddTripModal({ isOpen, onClose }) {
       router.push("/admin/trips/new");
     } catch (err) {
       console.error("Parse error:", err);
-      setError(
+      showError(
         err.message ||
-          "Failed to parse trip details. Please check the format and try again."
+          "Failed to parse trip details. Please check the format and try again.",
+        "trip-upload"
       );
       setProcessing(false);
     }
@@ -151,7 +149,8 @@ export function AddTripModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <ModalPortal>
+      <div className={cn("fixed inset-0 flex items-center justify-center", MODAL_LAYER_CLASS)}>
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -223,23 +222,16 @@ export function AddTripModal({ isOpen, onClose }) {
               </button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4" data-error-anchor="trip-upload">
               <button
                 onClick={() => {
                   setSelectedOption(null);
                   setUploadedText("");
-                  setError(null);
                 }}
                 className="text-sm text-zinc-500 hover:text-zinc-700 flex items-center gap-1"
               >
                 ← Back to options
               </button>
-
-              {error && (
-                <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
-                  {error}
-                </div>
-              )}
 
               {!showPreview ? (
                 <div className="space-y-3">
@@ -413,5 +405,6 @@ export function AddTripModal({ isOpen, onClose }) {
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }

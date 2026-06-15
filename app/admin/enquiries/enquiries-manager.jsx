@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/admin/stat-card";
+import { showError } from "@/lib/toast";
 
 const STATUS_STYLES = {
   new: "bg-blue-100 text-blue-800 border-blue-200",
@@ -51,7 +52,7 @@ export function EnquiriesManager({ initialEnquiries = [] }) {
       if (error) throw error;
       setEnquiries(data || []);
     } catch (err) {
-      console.error("Error fetching enquiries:", err);
+      showError(err.message || "Failed to load enquiries.");
     } finally {
       setLoading(false);
     }
@@ -75,7 +76,7 @@ export function EnquiriesManager({ initialEnquiries = [] }) {
       if (error) throw error;
       fetchEnquiries();
     } catch (err) {
-      console.error("Error updating status:", err);
+      showError(err.message || "Failed to update enquiry status.");
     }
   };
 

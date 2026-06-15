@@ -35,7 +35,7 @@ export function SiteChrome({ children }) {
 
       <header
         className={cn(
-          "fixed inset-x-0 top-0 z-50 transition-all duration-300",
+          "fixed inset-x-0 top-0 z-40 transition-all duration-300",
           isHomePage
             ? "backdrop-blur-md bg-black/30 border-b border-white/10"
             : "backdrop-blur-xl bg-white/70 border-b border-zinc-200/50 shadow-sm"
@@ -129,7 +129,7 @@ export function SiteChrome({ children }) {
           />
 
           {/* Sidebar */}
-          <div className="fixed inset-y-0 right-0 z-50 w-64 bg-white shadow-2xl md:hidden">
+          <div className="fixed inset-y-0 right-0 z-[45] w-64 bg-white shadow-2xl md:hidden">
             <div className="flex h-full flex-col">
               {/* Header */}
               <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CreditCard, Loader2 } from "lucide-react";
+import { showError } from "@/lib/toast";
 
 const CATEGORY_LABELS = {
   payments: "Payments",
@@ -65,7 +66,6 @@ export function FeatureFlagsManager({ flags: initialFlags }) {
   const supabase = createClient();
   const [flags, setFlags] = useState(initialFlags);
   const [saving, setSaving] = useState(null);
-  const [error, setError] = useState(null);
 
   const grouped = flags.reduce((acc, flag) => {
     const cat = flag.category || "general";
@@ -77,7 +77,6 @@ export function FeatureFlagsManager({ flags: initialFlags }) {
   const handleToggle = async (flag) => {
     const nextEnabled = !flag.enabled;
     setSaving(flag.key);
-    setError(null);
 
     setFlags((prev) =>
       prev.map((f) => (f.key === flag.key ? { ...f, enabled: nextEnabled } : f))
@@ -96,20 +95,14 @@ export function FeatureFlagsManager({ flags: initialFlags }) {
       setFlags((prev) =>
         prev.map((f) => (f.key === flag.key ? { ...f, enabled: flag.enabled } : f))
       );
-      setError(err.message || "Failed to update flag.");
+      showError(err.message || "Failed to update flag.");
     } finally {
       setSaving(null);
     }
   };
 
   return (
-    <div className="space-y-6">
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {error}
-        </div>
-      )}
-
+    <div className="space-y-6" data-error-anchor>
       {Object.entries(grouped).map(([category, categoryFlags]) => (
         <div key={category} className="space-y-3">
           <h3 className="text-xs font-semibold uppercase tracking-widest text-zinc-500">

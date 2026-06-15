@@ -8,6 +8,7 @@ import { Edit, Trash2, Eye } from "lucide-react";
 import { revalidateGroupTripsOnServer } from "@/lib/revalidate-trips-client";
 import { capacityLabel } from "@/lib/group-trip-capacity";
 import { formatFullDate } from "@/lib/trip-booking";
+import { showError } from "@/lib/toast";
 
 export function GroupTripsTable({ trips }) {
   const router = useRouter();
@@ -18,7 +19,7 @@ export function GroupTripsTable({ trips }) {
 
     const { error } = await supabase.from("group_trips").delete().eq("id", id);
     if (error) {
-      alert("Error deleting group trip: " + error.message);
+      showError("Error deleting group trip: " + error.message);
     } else {
       await revalidateGroupTripsOnServer();
       router.refresh();

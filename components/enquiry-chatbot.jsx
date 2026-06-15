@@ -4,6 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import { X, Send, Calendar, User, Mail, Phone, Users, MapPin, IndianRupee, Plane, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
 import { validateEnquiryField } from "@/lib/form-validation";
 import { contactDetails } from "@/lib/site-data";
+import { showError } from "@/lib/toast";
+import { ModalPortal, MODAL_LAYER_CLASS } from "@/components/modal-portal";
+import { cn } from "@/lib/utils";
 
 const questions = [
   {
@@ -116,7 +119,7 @@ export function EnquiryChatbot({ isOpen, onClose }) {
 
     const validation = validateEnquiryField(currentQuestion.id, value);
     if (!validation.valid) {
-      addBotMessage(validation.message);
+      showError(validation.message, inputRef);
       return;
     }
 
@@ -159,11 +162,17 @@ export function EnquiryChatbot({ isOpen, onClose }) {
           addBotMessage("Your enquiry has been sent! Our travel experts will reach out to you soon.");
         }, 600);
       } else {
-        addBotMessage(`Something went wrong. Please try again or call us at ${contactDetails.phone}.`);
+        showError(
+          `Something went wrong. Please try again or call us at ${contactDetails.phone}.`,
+          inputRef
+        );
       }
     } catch (error) {
       console.error('Error sending enquiry:', error);
-      addBotMessage(`Connection error. Please call us at ${contactDetails.phone} if the issue persists.`);
+      showError(
+        `Connection error. Please call us at ${contactDetails.phone} if the issue persists.`,
+        inputRef
+      );
     } finally {
       setIsSending(false);
     }
@@ -185,7 +194,8 @@ export function EnquiryChatbot({ isOpen, onClose }) {
   const progress = ((currentStep) / questions.length) * 100;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <ModalPortal>
+      <div className={cn("fixed inset-0 flex items-end justify-center p-0 sm:items-center sm:p-4", MODAL_LAYER_CLASS)}>
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-md"
@@ -352,7 +362,7 @@ export function EnquiryChatbot({ isOpen, onClose }) {
 
         {/* Input Area */}
         {!showEnquiry && !enquirySent && (
-          <div className="p-4 bg-white border-t border-zinc-200">
+          <div className="p-4 bg-white border-t border-zinc-200" data-error-anchor>
             <form onSubmit={handleSubmit}>
               <div className="flex items-center gap-3 bg-zinc-100 rounded-2xl p-1.5 border border-zinc-200 focus-within:border-zinc-400 focus-within:ring-4 focus-within:ring-zinc-100 transition-all duration-200">
                 {Icon && (
@@ -363,6 +373,8 @@ export function EnquiryChatbot({ isOpen, onClose }) {
                 <input
                   ref={inputRef}
                   type={currentQuestion?.type || "text"}
+                  name={currentQuestion?.id || "message"}
+                  data-field={currentQuestion?.id || "message"}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder={currentQuestion?.placeholder}
@@ -399,5 +411,6 @@ export function EnquiryChatbot({ isOpen, onClose }) {
         )}
       </div>
     </div>
+    </ModalPortal>
   );
 }

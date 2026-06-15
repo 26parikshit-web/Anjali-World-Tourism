@@ -15,6 +15,7 @@ import {
   fromDatetimeLocalValue,
   toDatetimeLocalValue,
 } from "@/components/admin/trip-pricing-editor";
+import { showError } from "@/lib/toast";
 import {
   buildPricingPackagesFromFormRows,
   deriveLegacyPriceLabel,
@@ -41,7 +42,6 @@ export function TripForm({ trip, variant = "trip" }) {
   const adminListPath = isGroup ? "/admin/group-trips" : "/admin/trips";
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   // Initialize form data
   const getInitialFormData = () => {
@@ -174,7 +174,6 @@ export function TripForm({ trip, variant = "trip" }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     try {
       const pricing_packages = buildPricingPackagesFromFormRows(pricingRows);
@@ -249,20 +248,14 @@ export function TripForm({ trip, variant = "trip" }) {
       router.push(adminListPath);
       router.refresh();
     } catch (err) {
-      setError(err.message);
+      showError(err.message, e.currentTarget);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      {error && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
-          {error}
-        </div>
-      )}
-
+    <form onSubmit={handleSubmit} className="space-y-8" data-error-anchor>
       {isLoadedFromUpload && (
         <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-sm">
           <div className="flex items-start gap-2">
@@ -374,7 +367,11 @@ export function TripForm({ trip, variant = "trip" }) {
       </div>
 
       {isGroup && (
-        <div className="bg-white rounded-xl border border-zinc-200 p-6">
+        <div
+          className="bg-white rounded-xl border border-zinc-200 p-6"
+          data-error-anchor="date"
+          data-field="date"
+        >
           <h2 className="text-base font-semibold text-zinc-900 mb-4">Group departure</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="sm:col-span-2">
@@ -383,6 +380,8 @@ export function TripForm({ trip, variant = "trip" }) {
               </label>
               <input
                 type="text"
+                name="hosted_place"
+                data-field="place"
                 value={formData.hosted_place}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, hosted_place: e.target.value }))
@@ -398,6 +397,8 @@ export function TripForm({ trip, variant = "trip" }) {
               </label>
               <input
                 type="datetime-local"
+                name="departure_date"
+                data-field="date"
                 value={departureAt}
                 onChange={(e) => setDepartureAt(e.target.value)}
                 required
@@ -410,6 +411,8 @@ export function TripForm({ trip, variant = "trip" }) {
               </label>
               <input
                 type="number"
+                name="max_capacity"
+                data-field="capacity"
                 min="1"
                 value={formData.max_capacity}
                 onChange={(e) =>
@@ -552,7 +555,11 @@ export function TripForm({ trip, variant = "trip" }) {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-zinc-200 p-6">
+      <div
+        className="bg-white rounded-xl border border-zinc-200 p-6"
+        data-error-anchor="pricing"
+        data-field="pricing"
+      >
         <h2 className="text-base font-semibold text-zinc-900 mb-4">Pricing & packages</h2>
         <TripPricingEditor
           rows={pricingRows}

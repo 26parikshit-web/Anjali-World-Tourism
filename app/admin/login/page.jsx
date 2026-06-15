@@ -4,11 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { showError, showSuccess } from "@/lib/toast";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [isConfigured, setIsConfigured] = useState(true);
@@ -26,11 +26,10 @@ export default function AdminLoginPage() {
     e.preventDefault();
 
     if (!isConfigured) {
-      setError("Supabase is not configured. Please add your credentials to .env.local");
+      showError("Supabase is not configured. Please add your credentials to .env.local");
       return;
     }
 
-    setError(null);
     setLoading(true);
 
     try {
@@ -39,7 +38,7 @@ export default function AdminLoginPage() {
       if (isSignUp) {
         const { error: signUpError } = await supabase.auth.signUp({ email, password });
         if (signUpError) throw signUpError;
-        setError("Check your email for the confirmation link!");
+        showSuccess("Check your email for the confirmation link!");
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -50,7 +49,7 @@ export default function AdminLoginPage() {
         router.refresh();
       }
     } catch (err) {
-      setError(err.message);
+      showError(err.message, e.currentTarget);
     } finally {
       setLoading(false);
     }
@@ -77,23 +76,12 @@ export default function AdminLoginPage() {
           </div>
         )}
 
-        {error && (
-          <div
-            className={`mb-6 rounded-xl border p-4 text-sm ${
-              error.includes("Check your email")
-                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                : "border-red-200 bg-red-50 text-red-700"
-            }`}
-          >
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleAuth} className="space-y-4">
+        <form onSubmit={handleAuth} className="space-y-4" data-error-anchor>
           <div>
             <label className="mb-1.5 block text-xs font-medium text-zinc-700">Email</label>
             <input
               type="email"
+              name="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -107,6 +95,7 @@ export default function AdminLoginPage() {
             <label className="mb-1.5 block text-xs font-medium text-zinc-700">Password</label>
             <input
               type="password"
+              name="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -132,7 +121,6 @@ export default function AdminLoginPage() {
               type="button"
               onClick={() => {
                 setIsSignUp(!isSignUp);
-                setError(null);
               }}
               className="text-sm text-zinc-500 transition hover:text-zinc-700"
             >

@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { DataTable } from "@/components/admin/data-table";
 import { Button } from "@/components/ui/button";
+import { ModalPortal, MODAL_LAYER_CLASS } from "@/components/modal-portal";
+import { cn } from "@/lib/utils";
 import { Check, Plus, Edit, Trash2, X, Star } from "lucide-react";
+import { showError } from "@/lib/toast";
 
 export function ReviewsManager({ reviews, trips }) {
   const router = useRouter();
@@ -135,7 +138,7 @@ export function ReviewsManager({ reviews, trips }) {
       }
       router.refresh();
     } catch (err) {
-      alert("Error: " + err.message);
+      showError(err.message);
     } finally {
       setLoading(false);
     }
@@ -146,7 +149,7 @@ export function ReviewsManager({ reviews, trips }) {
     
     const { error } = await supabase.from("reviews").delete().eq("id", id);
     if (error) {
-      alert("Error: " + error.message);
+      showError(error.message);
     } else {
       await refreshReviewCaches();
       router.refresh();
@@ -170,7 +173,7 @@ export function ReviewsManager({ reviews, trips }) {
 
       router.refresh();
     } catch (err) {
-      alert("Error: " + err.message);
+      showError(err.message);
     } finally {
       setApprovingId(null);
     }
@@ -302,7 +305,13 @@ export function ReviewsManager({ reviews, trips }) {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalPortal>
+          <div
+            className={cn(
+              "fixed inset-0 flex items-center justify-center bg-black/50 p-4",
+              MODAL_LAYER_CLASS
+            )}
+          >
           <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-zinc-200">
               <h2 className="text-lg font-semibold text-zinc-900">
@@ -542,6 +551,7 @@ export function ReviewsManager({ reviews, trips }) {
             </form>
           </div>
         </div>
+        </ModalPortal>
       )}
     </>
   );

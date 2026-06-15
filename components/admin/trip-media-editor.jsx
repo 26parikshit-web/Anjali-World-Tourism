@@ -9,7 +9,7 @@ import {
   mediaAcceptForType,
   normalizeGalleryItem,
 } from "@/lib/trip-media";
-import { Button } from "@/components/ui/button";
+import { showError } from "@/lib/toast";
 import {
   ChevronDown,
   ChevronUp,
@@ -38,7 +38,6 @@ export function TripMediaEditor({
   const [newItem, setNewItem] = useState(emptyItem());
   const [uploading, setUploading] = useState(false);
   const [uploadTarget, setUploadTarget] = useState(null);
-  const [error, setError] = useState(null);
 
   const items = gallery.map(normalizeGalleryItem).filter(Boolean);
 
@@ -48,15 +47,15 @@ export function TripMediaEditor({
     const mediaType = file.type.startsWith("video/") ? "video" : "image";
     const limit = maxUploadBytes(mediaType);
     if (file.size > limit) {
-      setError(
+      showError(
         mediaType === "video"
           ? "Video must be under 30 MB. Keep clips short (~30 seconds)."
-          : "Image must be under 10 MB."
+          : "Image must be under 10 MB.",
+        "media"
       );
       return;
     }
 
-    setError(null);
     setUploading(true);
     setUploadTarget(target === "hero" ? "hero" : index ?? "new");
 
@@ -90,7 +89,7 @@ export function TripMediaEditor({
         onGalleryChange?.([...items, mediaItem]);
       }
     } catch (err) {
-      setError(err.message || "Upload failed. Check Cloudinary env vars.");
+      showError(err.message || "Upload failed. Check Cloudinary env vars.", "media");
     } finally {
       setUploading(false);
       setUploadTarget(null);
@@ -112,7 +111,7 @@ export function TripMediaEditor({
           resourceType: item.type === "video" ? "video" : "image",
         });
       } catch (err) {
-        setError(err.message || "Failed to delete from Cloudinary");
+        showError(err.message || "Failed to delete from Cloudinary", "media");
         return;
       }
     }
@@ -130,7 +129,7 @@ export function TripMediaEditor({
   const addFromUrl = () => {
     const src = newItem.src.trim();
     if (!src) {
-      setError("Enter a media URL.");
+      showError("Enter a media URL.", "media");
       return;
     }
 
@@ -139,7 +138,6 @@ export function TripMediaEditor({
 
     onGalleryChange?.([...items, { type, src, alt: newItem.alt.trim() || "" }]);
     setNewItem(emptyItem());
-    setError(null);
   };
 
   const renderPreview = (item) => {
@@ -168,13 +166,7 @@ export function TripMediaEditor({
   };
 
   return (
-    <div className="space-y-6">
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
+    <div className="space-y-6" data-error-anchor="media" data-field="media">
       <div className="rounded-xl border border-zinc-200 bg-zinc-50/50 p-4">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
@@ -225,7 +217,7 @@ export function TripMediaEditor({
                   try {
                     await deleteAdminMedia({ url: heroImage });
                   } catch (err) {
-                    setError(err.message || "Failed to delete hero from Cloudinary");
+                    showError(err.message || "Failed to delete hero from Cloudinary", "media");
                     return;
                   }
                 }

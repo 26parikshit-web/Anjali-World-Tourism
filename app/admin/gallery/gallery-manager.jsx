@@ -7,7 +7,10 @@ import { uploadAdminMedia, deleteAdminMedia } from "@/lib/admin-media";
 import { cloudinaryGalleryUrl, isCloudinaryUrl } from "@/lib/cloudinary";
 import { maxUploadBytes, mediaAcceptForType } from "@/lib/trip-media";
 import { Button } from "@/components/ui/button";
+import { ModalPortal, MODAL_LAYER_CLASS } from "@/components/modal-portal";
+import { cn } from "@/lib/utils";
 import { Plus, Trash2, X, Image as ImageIcon, ExternalLink, Upload, Loader2 } from "lucide-react";
+import { showError } from "@/lib/toast";
 
 const categories = [
   "Destinations",
@@ -32,7 +35,6 @@ export function GalleryManager({ gallery, trips }) {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const [formData, setFormData] = useState({
@@ -53,23 +55,21 @@ export function GalleryManager({ gallery, trips }) {
       category: categories[0],
       trip_id: "",
     });
-    setError(null);
   };
 
   const handleFileSelect = async (file) => {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setError("Gallery uploads support images only (JPEG, PNG, WebP, GIF).");
+      showError("Gallery uploads support images only (JPEG, PNG, WebP, GIF).", "media");
       return;
     }
 
     if (file.size > maxUploadBytes("image")) {
-      setError("Image must be under 10 MB.");
+      showError("Image must be under 10 MB.", "media");
       return;
     }
 
-    setError(null);
     setUploading(true);
 
     try {
@@ -86,7 +86,7 @@ export function GalleryManager({ gallery, trips }) {
         title: prev.title || file.name.replace(/\.[^.]+$/, ""),
       }));
     } catch (err) {
-      setError(err.message || "Upload failed. Check Cloudinary env vars.");
+      showError(err.message || "Upload failed. Check Cloudinary env vars.", "media");
     } finally {
       setUploading(false);
     }
@@ -95,12 +95,11 @@ export function GalleryManager({ gallery, trips }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.image_url) {
-      setError("Upload an image first.");
+      showError("Upload an image first.", "media");
       return;
     }
 
     setLoading(true);
-    setError(null);
 
     try {
       const base = {
@@ -129,7 +128,7 @@ export function GalleryManager({ gallery, trips }) {
       resetForm();
       router.refresh();
     } catch (err) {
-      setError(err.message || "Failed to save gallery item.");
+      showError(err.message || "Failed to save gallery item.", "media");
     } finally {
       setLoading(false);
     }
@@ -152,7 +151,7 @@ export function GalleryManager({ gallery, trips }) {
 
       router.refresh();
     } catch (err) {
-      alert("Error: " + err.message);
+      showError(err.message);
     }
   };
 
@@ -262,7 +261,13 @@ export function GalleryManager({ gallery, trips }) {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalPortal>
+          <div
+            className={cn(
+              "fixed inset-0 flex items-center justify-center bg-black/50 p-4",
+              MODAL_LAYER_CLASS
+            )}
+          >
           <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-zinc-200">
               <h2 className="text-lg font-semibold text-zinc-900">Add Gallery Image</h2>
@@ -277,13 +282,11 @@ export function GalleryManager({ gallery, trips }) {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {error && (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  {error}
-                </div>
-              )}
-
+            <form
+              onSubmit={handleSubmit}
+              className="p-6 space-y-4"
+              data-error-anchor="media"
+            >
               <div>
                 <label className="block text-xs font-medium text-zinc-700 mb-1.5">
                   Image *
@@ -403,6 +406,7 @@ export function GalleryManager({ gallery, trips }) {
             </form>
           </div>
         </div>
+        </ModalPortal>
       )}
     </>
   );

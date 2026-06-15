@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ModalPortal, MODAL_LAYER_CLASS } from "@/components/modal-portal";
+import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "admin-settings-dev-alert-dismissed";
 
@@ -35,7 +37,13 @@ export function DeveloperAlertModal() {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+    <ModalPortal>
+      <div
+        className={cn(
+          "fixed inset-0 flex items-center justify-center bg-black/50 p-4",
+          MODAL_LAYER_CLASS
+        )}
+      >
       <div
         className="relative w-full max-w-md rounded-2xl border border-amber-200 bg-white p-6 shadow-2xl"
         role="alertdialog"
@@ -75,5 +83,6 @@ export function DeveloperAlertModal() {
         </Button>
       </div>
     </div>
+    </ModalPortal>
   );
 }

@@ -19,6 +19,9 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ModalPortal, MODAL_LAYER_CLASS } from "@/components/modal-portal";
+import { cn } from "@/lib/utils";
+import { showError } from "@/lib/toast";
 
 const STATUS_STYLES = {
   paid: "bg-emerald-100 text-emerald-800 border-emerald-200",
@@ -66,7 +69,7 @@ export function BookingsManager({ bookings: initialBookings }) {
       router.refresh();
     } catch (err) {
       console.error("Error fetching bookings:", err);
-      alert(err.message || "Failed to refresh bookings.");
+      showError(err.message || "Failed to refresh bookings.");
     } finally {
       setLoading(false);
     }
@@ -238,7 +241,13 @@ export function BookingsManager({ bookings: initialBookings }) {
       />
 
       {selected && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center">
+        <ModalPortal>
+          <div
+            className={cn(
+              "fixed inset-0 flex items-end justify-center bg-black/50 p-4 sm:items-center",
+              MODAL_LAYER_CLASS
+            )}
+          >
           <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-xl">
             <div className="sticky top-0 flex items-center justify-between border-b border-zinc-200 bg-white px-5 py-4">
               <div>
@@ -353,6 +362,7 @@ export function BookingsManager({ bookings: initialBookings }) {
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
     </div>
   );

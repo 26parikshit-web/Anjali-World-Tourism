@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { showError, showSuccess } from "@/lib/toast";
 
 const initialForm = {
   name: "",
@@ -41,7 +42,6 @@ export function ReviewSubmissionForm({ trips = [] }) {
   const [media, setMedia] = useState(initialMedia);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
   const fileInputRef = useRef(null);
 
   const tripOptions = useMemo(
@@ -110,6 +110,7 @@ export function ReviewSubmissionForm({ trips = [] }) {
         uploading: false,
         error: err.message || "Upload failed. Please try again.",
       }));
+      showError(err.message || "Upload failed. Please try again.", "media");
     }
   };
 
@@ -122,17 +123,16 @@ export function ReviewSubmissionForm({ trips = [] }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
-    setError("");
     setMessage("");
 
     if (media.uploading) {
-      setError("Please wait for your photo or video to finish uploading.");
+      showError("Please wait for your photo or video to finish uploading.", "media");
       setLoading(false);
       return;
     }
 
     if (media.file && !media.url) {
-      setError("Media upload failed. Remove the file and try again.");
+      showError("Media upload failed. Remove the file and try again.", "media");
       setLoading(false);
       return;
     }
@@ -155,10 +155,11 @@ export function ReviewSubmissionForm({ trips = [] }) {
       }
 
       setMessage(data.message || "Review submitted successfully.");
+      showSuccess(data.message || "Review submitted successfully.");
       setFormData(initialForm);
       clearMedia();
     } catch (err) {
-      setError(err.message || "Failed to submit review. Please try again.");
+      showError(err.message || "Failed to submit review. Please try again.", event.currentTarget);
     } finally {
       setLoading(false);
     }
@@ -187,7 +188,7 @@ export function ReviewSubmissionForm({ trips = [] }) {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" data-error-anchor>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block">
               <span className="mb-1.5 block text-xs font-medium text-zinc-700">Name *</span>
@@ -195,6 +196,8 @@ export function ReviewSubmissionForm({ trips = [] }) {
                 <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                 <input
                   type="text"
+                  name="name"
+                  data-field="name"
                   value={formData.name}
                   onChange={(event) => updateField("name", event.target.value)}
                   maxLength={100}
@@ -211,6 +214,8 @@ export function ReviewSubmissionForm({ trips = [] }) {
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                 <input
                   type="email"
+                  name="email"
+                  data-field="email"
                   value={formData.email}
                   onChange={(event) => updateField("email", event.target.value)}
                   maxLength={254}
@@ -244,6 +249,8 @@ export function ReviewSubmissionForm({ trips = [] }) {
             <label className="block">
               <span className="mb-1.5 block text-xs font-medium text-zinc-700">Trip</span>
               <select
+                name="trip_id"
+                data-field="trip"
                 value={formData.trip_id}
                 onChange={(event) => handleTripChange(event.target.value)}
                 className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-base outline-none transition focus:border-zinc-900 focus:bg-white sm:text-sm"
@@ -288,6 +295,8 @@ export function ReviewSubmissionForm({ trips = [] }) {
           <label className="block">
             <span className="mb-1.5 block text-xs font-medium text-zinc-700">Review *</span>
             <textarea
+              name="quote"
+              data-field="message"
               value={formData.quote}
               onChange={(event) => updateField("quote", event.target.value)}
               minLength={20}
@@ -299,7 +308,7 @@ export function ReviewSubmissionForm({ trips = [] }) {
             />
           </label>
 
-          <div>
+          <div data-error-anchor="media" data-field="media">
             <span className="mb-1.5 block text-xs font-medium text-zinc-700">
               Photo or video <span className="font-normal text-zinc-400">(optional)</span>
             </span>
@@ -372,19 +381,11 @@ export function ReviewSubmissionForm({ trips = [] }) {
               </div>
             )}
 
-            {media.error && (
-              <p className="mt-2 text-sm text-red-600">{media.error}</p>
-            )}
           </div>
 
           {message && (
             <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
               {message}
-            </p>
-          )}
-          {error && (
-            <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
-              {error}
             </p>
           )}
 

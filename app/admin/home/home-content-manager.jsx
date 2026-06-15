@@ -7,6 +7,7 @@ import { cloudinaryHeroUrl, isCloudinaryUrl } from "@/lib/cloudinary";
 import { maxUploadBytes, mediaAcceptForType } from "@/lib/trip-media";
 import { Button } from "@/components/ui/button";
 import { Loader2, Save, Upload, X } from "lucide-react";
+import { showError, showSuccess } from "@/lib/toast";
 
 function SectionMediaField({
   label,
@@ -16,7 +17,6 @@ function SectionMediaField({
   posterUrl,
   publicId,
   onChange,
-  onError,
 }) {
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
@@ -28,21 +28,21 @@ function SectionMediaField({
     const expectedType = mediaType === "video" ? "video" : "image";
 
     if ((isVideo && expectedType !== "video") || (!isVideo && expectedType !== "image")) {
-      onError(`Upload a ${expectedType} file for this section.`);
+      showError(`Upload a ${expectedType} file for this section.`, "media");
       return;
     }
 
     if (file.size > maxUploadBytes(expectedType)) {
-      onError(
+      showError(
         expectedType === "video"
           ? "Video must be under 30 MB."
-          : "Image must be under 10 MB."
+          : "Image must be under 10 MB.",
+        "media"
       );
       return;
     }
 
     setUploading(true);
-    onError("");
 
     try {
       const uploaded = await uploadAdminMedia(file, {
@@ -56,7 +56,7 @@ function SectionMediaField({
         cloudinary_public_id: uploaded.publicId || "",
       });
     } catch (err) {
-      onError(err.message || "Upload failed.");
+      showError(err.message || "Upload failed.", "media");
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -72,7 +72,7 @@ function SectionMediaField({
           resourceType: mediaType,
         });
       } catch (err) {
-        onError(err.message || "Failed to remove media from Cloudinary.");
+        showError(err.message || "Failed to remove media from Cloudinary.", "media");
         return;
       }
     }
@@ -88,7 +88,7 @@ function SectionMediaField({
     mediaUrl && mediaType === "image" ? cloudinaryHeroUrl(mediaUrl) : mediaUrl;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" data-error-anchor="media">
       <div className="flex items-center justify-between gap-2">
         <label className="block text-xs font-medium text-zinc-700">{label}</label>
         <div className="flex items-center gap-2">
@@ -173,7 +173,6 @@ export function HomeContentManager({ initialContent }) {
   const [content, setContent] = useState(initialContent);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
 
   const updateSection = (section, patch) => {
     setContent((current) => ({
@@ -184,7 +183,6 @@ export function HomeContentManager({ initialContent }) {
 
   const handleSave = async () => {
     setLoading(true);
-    setError("");
     setMessage("");
 
     try {
@@ -200,10 +198,13 @@ export function HomeContentManager({ initialContent }) {
       }
 
       setContent(data.content);
-      setMessage("Homepage content saved. Changes appear on the site within a minute.");
+      const successText =
+        "Homepage content saved. Changes appear on the site within a minute.";
+      setMessage(successText);
+      showSuccess(successText);
       router.refresh();
     } catch (err) {
-      setError(err.message || "Failed to save.");
+      showError(err.message || "Failed to save.");
     } finally {
       setLoading(false);
     }
@@ -258,7 +259,6 @@ export function HomeContentManager({ initialContent }) {
           posterUrl={content.hero.poster_url}
           publicId={content.hero.cloudinary_public_id}
           onChange={(patch) => updateSection("hero", patch)}
-          onError={setError}
         />
       </SectionCard>
 
@@ -325,7 +325,6 @@ export function HomeContentManager({ initialContent }) {
           posterUrl={content.spiritual.poster_url}
           publicId={content.spiritual.cloudinary_public_id}
           onChange={(patch) => updateSection("spiritual", patch)}
-          onError={setError}
         />
       </SectionCard>
 
@@ -392,7 +391,6 @@ export function HomeContentManager({ initialContent }) {
           posterUrl={content.getaway.poster_url}
           publicId={content.getaway.cloudinary_public_id}
           onChange={(patch) => updateSection("getaway", patch)}
-          onError={setError}
         />
       </SectionCard>
 
@@ -401,13 +399,8 @@ export function HomeContentManager({ initialContent }) {
           {message}
         </p>
       )}
-      {error && (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {error}
-        </p>
-      )}
 
-      <div className="flex justify-end">
+      <div className="flex justify-end" data-error-anchor>
         <Button
           type="button"
           onClick={handleSave}

@@ -4,7 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { DataTable } from "@/components/admin/data-table";
+import { ModalPortal, MODAL_LAYER_CLASS } from "@/components/modal-portal";
+import { cn } from "@/lib/utils";
 import { X, Mail, Phone, MessageSquare, Calendar, Trash2 } from "lucide-react";
+import { showError } from "@/lib/toast";
 
 const statusOptions = [
   { value: "new", label: "New", color: "bg-amber-100 text-amber-700" },
@@ -26,7 +29,7 @@ export function ContactsManager({ contacts }) {
       .eq("id", id);
     
     if (error) {
-      alert("Error: " + error.message);
+      showError(error.message);
     } else {
       router.refresh();
       if (selectedContact?.id === id) {
@@ -44,7 +47,7 @@ export function ContactsManager({ contacts }) {
       .eq("id", id);
     
     if (error) {
-      alert("Error: " + error.message);
+      showError(error.message);
     } else {
       router.refresh();
       if (selectedContact?.id === id) {
@@ -60,7 +63,7 @@ export function ContactsManager({ contacts }) {
       .eq("id", id);
     
     if (error) {
-      alert("Error: " + error.message);
+      showError(error.message);
     }
   };
 
@@ -179,7 +182,13 @@ export function ContactsManager({ contacts }) {
 
       {/* Detail Modal */}
       {selectedContact && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <ModalPortal>
+          <div
+            className={cn(
+              "fixed inset-0 flex items-center justify-center bg-black/50 p-4",
+              MODAL_LAYER_CLASS
+            )}
+          >
           <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-zinc-200">
               <h2 className="text-lg font-semibold text-zinc-900">
@@ -340,6 +349,7 @@ export function ContactsManager({ contacts }) {
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
     </>
   );

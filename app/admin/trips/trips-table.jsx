@@ -6,6 +6,7 @@ import { DataTable } from "@/components/admin/data-table";
 import { Edit, Trash2, Eye } from "lucide-react";
 import Link from "next/link";
 import { revalidateTripsOnServer } from "@/lib/revalidate-trips-client";
+import { showError } from "@/lib/toast";
 
 export function TripsTable({ trips }) {
   const router = useRouter();
@@ -16,7 +17,7 @@ export function TripsTable({ trips }) {
     
     const { error } = await supabase.from("trips").delete().eq("id", id);
     if (error) {
-      alert("Error deleting trip: " + error.message);
+      showError("Error deleting trip: " + error.message);
     } else {
       await revalidateTripsOnServer();
       router.refresh();

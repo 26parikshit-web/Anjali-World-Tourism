@@ -8,6 +8,8 @@ import {
   cloudinaryVideoUrl,
 } from "@/lib/cloudinary";
 import { normalizeGalleryItem } from "@/lib/trip-media";
+import { ModalPortal, MODAL_LAYER_CLASS } from "@/components/modal-portal";
+import { cn } from "@/lib/utils";
 
 function GalleryVideo({ src, className, hoverPreview = false }) {
   const videoSrc = cloudinaryVideoUrl(src);
@@ -95,10 +97,14 @@ export function TripGallery({ items = [] }) {
       </section>
 
       {active && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
-          onClick={() => setActiveIndex(null)}
-        >
+        <ModalPortal>
+          <div
+            className={cn(
+              "fixed inset-0 flex items-center justify-center bg-black/90 p-4",
+              MODAL_LAYER_CLASS
+            )}
+            onClick={() => setActiveIndex(null)}
+          >
           <button
             type="button"
             onClick={() => setActiveIndex(null)}
@@ -129,6 +135,7 @@ export function TripGallery({ items = [] }) {
             )}
           </div>
         </div>
+        </ModalPortal>
       )}
     </>
   );

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { showError } from "@/lib/toast";
 import { Calendar, CreditCard, Minus, Plus, User, Mail, Phone, X, Info, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DiscountCountdown } from "@/components/discount-countdown";
@@ -11,6 +12,7 @@ import {
   validateBookingDetails,
 } from "@/lib/form-validation";
 import { TripDatePicker } from "@/components/trip-date-picker";
+import { ModalPortal, MODAL_LAYER_CLASS } from "@/components/modal-portal";
 import { cn } from "@/lib/utils";
 
 function loadRazorpayScript() {
@@ -45,8 +47,8 @@ export function TripBookingModal({
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [step, setStep] = useState("details");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const contentRef = useRef(null);
   const isGroup = bookingKind === "group";
   const fixedDeparture = isGroup && trip.departure_date ? new Date(trip.departure_date) : null;
   const endDate = (fixedDeparture || departureDate)
@@ -70,10 +72,9 @@ export function TripBookingModal({
         throw new Error(data.message || "Could not load pricing.");
       }
       setQuote(data);
-      setError("");
     } catch (err) {
       setQuote(null);
-      setError(err.message || "Could not load pricing.");
+      showError(err.message || "Could not load pricing.", "pricing");
     } finally {
       setQuoteLoading(false);
     }
@@ -100,7 +101,6 @@ export function TripBookingModal({
   useEffect(() => {
     if (!open) {
       setStep("details");
-      setError("");
       setSuccessMessage("");
       setLoading(false);
       setSelectedPackage("standard");
@@ -112,14 +112,13 @@ export function TripBookingModal({
   const validateDetails = () => {
     const result = validateBookingDetails({ name, email, phone });
     if (!result.valid) {
-      setError(result.message);
+      showError(result.message, contentRef);
       return false;
     }
     if (!quote?.valid) {
-      setError("Pricing is not available. Please try again.");
+      showError("Pricing is not available. Please try again.", "pricing");
       return false;
     }
-    setError("");
     return true;
   };
 
@@ -152,7 +151,6 @@ export function TripBookingModal({
 
     const contact = getSanitizedContact();
     setLoading(true);
-    setError("");
 
     try {
       const res = await fetch("/api/enquiry", {
@@ -179,7 +177,7 @@ export function TripBookingModal({
       );
       setStep("success");
     } catch (err) {
-      setError(err.message || "Something went wrong. Please try again.");
+      showError(err.message || "Something went wrong. Please try again.", contentRef);
     } finally {
       setLoading(false);
     }
@@ -204,7 +202,6 @@ export function TripBookingModal({
 
     const contact = getSanitizedContact();
     setLoading(true);
-    setError("");
 
     try {
       const scriptLoaded = await loadRazorpayScript();
@@ -262,7 +259,7 @@ export function TripBookingModal({
 
           const verifyData = await verifyRes.json();
           if (!verifyRes.ok) {
-            setError(verifyData.message || "Payment verification failed.");
+            showError(verifyData.message || "Payment verification failed.", contentRef);
             setLoading(false);
             return;
           }
@@ -280,12 +277,12 @@ export function TripBookingModal({
 
       const rzp = new window.Razorpay(options);
       rzp.on("payment.failed", (resp) => {
-        setError(resp.error?.description || "Payment failed. Please try again.");
+        showError(resp.error?.description || "Payment failed. Please try again.", contentRef);
         setLoading(false);
       });
       rzp.open();
     } catch (err) {
-      setError(err.message || "Something went wrong.");
+      showError(err.message || "Something went wrong.", contentRef);
       setLoading(false);
     }
   };
@@ -299,11 +296,17 @@ export function TripBookingModal({
     : [{ key: "standard", label: "Standard", priceLabel: trip.price }];
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center overflow-x-hidden bg-black/50 sm:items-start sm:overflow-y-auto sm:p-4 sm:pt-[max(1rem,env(safe-area-inset-top))] sm:pb-[max(1rem,env(safe-area-inset-bottom))]"
-      onClick={onClose}
-    >
+    <ModalPortal>
       <div
+        className={cn(
+          "fixed inset-0 flex items-end justify-center overflow-x-hidden bg-black/50 sm:items-start sm:overflow-y-auto sm:p-4 sm:pt-[max(1rem,env(safe-area-inset-top))] sm:pb-[max(1rem,env(safe-area-inset-bottom))]",
+          MODAL_LAYER_CLASS
+        )}
+        onClick={onClose}
+      >
+      <div
+        ref={contentRef}
+        data-error-anchor="booking"
         className="relative flex max-h-[92dvh] w-full min-w-0 max-w-full flex-col overflow-hidden rounded-t-2xl border border-zinc-200 bg-white shadow-2xl sm:my-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-4xl sm:rounded-2xl"
         role="dialog"
         aria-modal="true"
@@ -406,10 +409,6 @@ export function TripBookingModal({
                 </div>
               </button>
             </div>
-
-            {error && (
-              <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
-            )}
           </div>
         ) : (
           <>
@@ -448,6 +447,8 @@ export function TripBookingModal({
                           <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                           <input
                             type="text"
+                            name="name"
+                            data-field="name"
                             placeholder="Full Name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
@@ -463,6 +464,8 @@ export function TripBookingModal({
                           <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                           <input
                             type="email"
+                            name="email"
+                            data-field="email"
                             placeholder="Email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -479,6 +482,8 @@ export function TripBookingModal({
                           <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                           <input
                             type="tel"
+                            name="phone"
+                            data-field="phone"
                             placeholder="Phone Number"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
@@ -496,7 +501,11 @@ export function TripBookingModal({
                     </p>
                   </div>
 
-                  <div className="rounded-xl border border-zinc-200 p-3.5 sm:p-4">
+                  <div
+                    className="rounded-xl border border-zinc-200 p-3.5 sm:p-4"
+                    data-error-anchor="pricing"
+                    data-field="pricing"
+                  >
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                       <div>
                         <h3 className="text-sm font-semibold text-zinc-900">Package Options</h3>
@@ -554,10 +563,6 @@ export function TripBookingModal({
                       })}
                     </div>
                   </div>
-
-                  {error && (
-                    <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
-                  )}
                 </div>
 
                 <div className="order-1 min-w-0 border-b border-zinc-200 bg-zinc-50 p-4 sm:p-6 md:order-2 md:border-b-0 md:border-l md:rounded-r-2xl">
@@ -682,5 +687,6 @@ export function TripBookingModal({
         )}
       </div>
     </div>
+    </ModalPortal>
   );
 }
