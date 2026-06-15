@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, Plane } from "lucide-react";
 import { useChatbot } from "@/contexts/chatbot-context";
 import { PageBackground } from "@/components/home/page-background";
+import { contactDetails } from "@/lib/site-data";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -205,6 +206,12 @@ export function SiteChrome({ children }) {
                 Curated itineraries and on-call planners for pilgrimages, group trips, family
                 holidays, and honeymoons across India.
               </p>
+              <a
+                href={`tel:${contactDetails.whatsapp}`}
+                className="mt-2 inline-block font-medium text-zinc-700 hover:text-zinc-900"
+              >
+                {contactDetails.phone}
+              </a>
             </div>
 
             <div className="flex flex-wrap gap-4">

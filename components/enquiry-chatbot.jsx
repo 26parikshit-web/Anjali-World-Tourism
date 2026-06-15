@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Send, Calendar, User, Mail, Phone, Users, MapPin, IndianRupee, Plane, CheckCircle2, Loader2, ArrowRight } from "lucide-react";
 import { validateEnquiryField } from "@/lib/form-validation";
+import { contactDetails } from "@/lib/site-data";
 
 const questions = [
   {
@@ -158,11 +159,11 @@ export function EnquiryChatbot({ isOpen, onClose }) {
           addBotMessage("Your enquiry has been sent! Our travel experts will reach out to you soon.");
         }, 600);
       } else {
-        addBotMessage("Something went wrong. Please try again or contact us directly.");
+        addBotMessage(`Something went wrong. Please try again or call us at ${contactDetails.phone}.`);
       }
     } catch (error) {
       console.error('Error sending enquiry:', error);
-      addBotMessage("Connection error. Please check your internet and try again.");
+      addBotMessage(`Connection error. Please call us at ${contactDetails.phone} if the issue persists.`);
     } finally {
       setIsSending(false);
     }

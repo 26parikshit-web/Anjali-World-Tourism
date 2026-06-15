@@ -6,8 +6,8 @@ ALTER TABLE trips ADD COLUMN IF NOT EXISTS discount_percent NUMERIC(5,2)
 ALTER TABLE trips ADD COLUMN IF NOT EXISTS discount_ends_at TIMESTAMPTZ;
 
 COMMENT ON COLUMN trips.pricing_packages IS 'Array of { key, label, price_paise } — standard, deluxe, super_deluxe';
-COMMENT ON COLUMN trips.discount_percent IS 'Percent off per-person package price; enforced server-side until discount_ends_at';
-COMMENT ON COLUMN trips.discount_ends_at IS 'UTC timestamp after which discount is ignored (server clock)';
+COMMENT ON COLUMN trips.discount_percent IS 'Per-trip only: percent off package prices on this trip until discount_ends_at (not site-wide)';
+COMMENT ON COLUMN trips.discount_ends_at IS 'Per-trip only: UTC timestamp after which this trip''s discount is ignored';
 
 -- Bookings table (payment records)
 CREATE TABLE IF NOT EXISTS bookings (

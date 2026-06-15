@@ -20,6 +20,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { TripCard } from "@/components/trip-card";
+import { contactDetails } from "@/lib/site-data";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -484,6 +485,12 @@ export function HomePage({ spiritualJourneys, friendsGetaway, homeContent }) {
               Curated itineraries and on-call planners for pilgrimages, group trips, family
               holidays, and honeymoons across India.
             </p>
+            <a
+              href={`tel:${contactDetails.whatsapp}`}
+              className="mt-2 inline-block font-medium text-zinc-700 hover:text-zinc-900"
+            >
+              {contactDetails.phone}
+            </a>
           </div>
           <div className="flex flex-wrap gap-4">
             <Link href="/" className="hover:text-zinc-900 transition-colors">

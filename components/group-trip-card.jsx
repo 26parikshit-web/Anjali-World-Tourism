@@ -50,8 +50,17 @@ export function GroupTripCard({ trip }) {
         </p>
         <div className="mt-auto flex items-end justify-between pt-4">
           <div>
+            {listPrice.discountActive && listPrice.displayPriceBase && (
+              <p className="text-sm text-zinc-400 line-through tabular-nums">
+                {listPrice.displayPriceBase}
+              </p>
+            )}
             <p className="text-lg font-bold text-zinc-900">{listPrice.displayPrice}</p>
-            <p className="text-[11px] text-zinc-500">per person</p>
+            <p className="text-[11px] text-zinc-500">
+              {listPrice.discountActive
+                ? `${listPrice.discountPercent}% off this trip · per person`
+                : "per person"}
+            </p>
           </div>
           <span className="inline-flex items-center gap-1 text-xs font-medium text-zinc-600">
             <Users className="h-3.5 w-3.5" />

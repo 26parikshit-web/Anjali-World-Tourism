@@ -10,7 +10,7 @@ import {
   formatFullDate,
   getDefaultBookingDate,
 } from "@/lib/trip-booking";
-import { getTripListPrice } from "@/lib/trip-pricing";
+import { getTripListPrice, getTripPackageDisplayPrices } from "@/lib/trip-pricing";
 import { capacityLabel } from "@/lib/group-trip-capacity";
 import { contactDetails } from "@/lib/site-data";
 import { TripBookingModal } from "@/components/trip-booking-modal";
@@ -33,6 +33,7 @@ export function TripBookingSidebar({
 
   const selectedDate = departureDate || defaultDate;
   const listPrice = useMemo(() => getTripListPrice(trip), [trip]);
+  const packagePrices = useMemo(() => getTripPackageDisplayPrices(trip), [trip]);
   const capacity = useMemo(
     () => (isGroup ? capacityLabel(trip) : null),
     [isGroup, trip]
@@ -68,10 +69,25 @@ export function TripBookingSidebar({
           {listPrice.discountActive && (
             <div className="mt-2">
               <p className="text-xs font-medium text-amber-300">
-                {listPrice.discountPercent}% off
+                {listPrice.discountPercent}% off this trip
               </p>
               <DiscountCountdown endsAt={listPrice.discountEndsAt} className="mt-2 text-amber-200" />
             </div>
+          )}
+          {packagePrices.length > 1 && (
+            <ul className="mt-3 space-y-1 border-t border-white/10 pt-3 text-xs">
+              {packagePrices.map((pkg) => (
+                <li key={pkg.key} className="flex items-center justify-between gap-2">
+                  <span className="text-zinc-400">{pkg.label}</span>
+                  <span className="tabular-nums text-white">
+                    {pkg.priceLabelBase && (
+                      <span className="mr-1 text-zinc-500 line-through">{pkg.priceLabelBase}</span>
+                    )}
+                    {pkg.priceLabel}
+                  </span>
+                </li>
+              ))}
+            </ul>
           )}
           {capacity && (
             <p className="mt-2 text-xs font-medium text-amber-300">{capacity.label}</p>
@@ -160,11 +176,20 @@ export function TripBookingSidebar({
         <div className="px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <div className="mx-auto w-full max-w-lg">
             <div className="mb-2.5">
+              {listPrice.discountActive && listPrice.displayPriceBase && (
+                <p className="text-sm text-zinc-500 line-through tabular-nums">
+                  {listPrice.displayPriceBase}
+                </p>
+              )}
               <p className="text-base font-bold tabular-nums text-white">
                 {listPrice.displayPrice}
                 <span className="text-sm font-medium text-zinc-400">/ person</span>
               </p>
-              <p className="mt-0.5 text-[10px] text-zinc-400">+5% GST · taxes as applicable</p>
+              <p className="mt-0.5 text-[10px] text-zinc-400">
+                {listPrice.discountActive
+                  ? `${listPrice.discountPercent}% off this trip · +5% GST`
+                  : "+5% GST · taxes as applicable"}
+              </p>
             </div>
             <div className="flex items-stretch gap-2">
               <Button

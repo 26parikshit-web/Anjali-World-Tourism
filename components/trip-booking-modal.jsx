@@ -498,7 +498,14 @@ export function TripBookingModal({
 
                   <div className="rounded-xl border border-zinc-200 p-3.5 sm:p-4">
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                      <h3 className="text-sm font-semibold text-zinc-900">Package Options</h3>
+                      <div>
+                        <h3 className="text-sm font-semibold text-zinc-900">Package Options</h3>
+                        {quote?.discount?.active && (
+                          <p className="mt-0.5 text-[11px] font-medium text-emerald-600">
+                            {quote.discount.percent}% off this trip&apos;s packages
+                          </p>
+                        )}
+                      </div>
                       {quote?.discount?.active && (
                         <DiscountCountdown
                           endsAt={quote.discount.endsAt}
@@ -529,7 +536,14 @@ export function TripBookingModal({
                                   : "bg-zinc-100 text-zinc-700"
                               )}
                             >
-                              {pkg.priceLabel}
+                              {pkg.priceLabelBase ? (
+                                <>
+                                  <span className="line-through opacity-70">{pkg.priceLabelBase}</span>{" "}
+                                  {pkg.priceLabel}
+                                </>
+                              ) : (
+                                pkg.priceLabel
+                              )}
                             </span>
                             <div className="flex items-center justify-between">
                               <span className="text-sm font-semibold">{pkg.label}</span>
@@ -610,7 +624,7 @@ export function TripBookingModal({
                         </div>
                         {quote.discount?.active && (
                           <p className="mt-1 text-xs font-medium text-emerald-600">
-                            {quote.discount.percent}% limited-time discount applied
+                            {quote.discount.percent}% off this trip (per person, before GST)
                           </p>
                         )}
                         <p className="mt-1 text-xs text-zinc-500">+{quote.gstPercent}% GST</p>

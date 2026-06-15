@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { validateContactForm } from "@/lib/form-validation";
+import { contactDetails } from "@/lib/site-data";
 
 const isSupabaseConfigured = () => {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -67,7 +68,7 @@ export function ContactForm({ tripInterest }) {
       if (submitError) throw submitError;
       setSent(true);
     } catch (err) {
-      setError("Failed to submit. Please try again or contact us directly.");
+      setError(`Failed to submit. Please try again or call us at ${contactDetails.phone}.`);
       console.error("Contact form error:", err);
     } finally {
       setLoading(false);

@@ -44,9 +44,11 @@ export function TripPricingEditor({ rows, discountPercent, discountEndsAt, onRow
       </div>
 
       <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4">
-        <h3 className="text-sm font-semibold text-zinc-900">Limited-time discount</h3>
+        <h3 className="text-sm font-semibold text-zinc-900">Limited-time discount (this trip only)</h3>
         <p className="mt-1 text-xs text-zinc-500">
-          Discount is validated on the server using UTC. When the timer ends, prices revert automatically.
+          Set a discount for this trip only — other trips are unaffected. Applies to every package
+          tier on this trip (Standard, Deluxe, Super Deluxe). Validated on the server until the end
+          time below.
         </p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <label className="block">
@@ -74,7 +76,7 @@ export function TripPricingEditor({ rows, discountPercent, discountEndsAt, onRow
         </div>
         {discountPercent && discountEndsAt && (
           <p className="mt-2 text-xs text-amber-800">
-            Active offer preview: {discountPercent}% off until the end time above.
+            Preview: {discountPercent}% off all tiers on this trip only, until the end time above.
           </p>
         )}
       </div>

@@ -20,7 +20,7 @@ export function ContactPageView({ contactDetails, contactTestimonials }) {
       icon: Phone,
       label: "Phone",
       value: contactDetails.phone,
-      href: `tel:${contactDetails.phone}`,
+      href: `tel:${contactDetails.whatsapp}`,
     },
     {
       icon: Calendar,

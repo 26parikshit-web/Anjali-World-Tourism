@@ -11,6 +11,7 @@ import { TripBookingSidebar } from "@/components/trip-booking-sidebar";
 import { cloudinaryHeroUrl } from "@/lib/cloudinary";
 import { getDefaultBookingDate, formatFullDate } from "@/lib/trip-booking";
 import { capacityLabel } from "@/lib/group-trip-capacity";
+import { contactDetails } from "@/lib/site-data";
 
 export function TripDetailView({ trip, featureFlags = {}, bookingKind = "trip" }) {
   const description = trip.description || "";
@@ -205,8 +206,8 @@ export function TripDetailView({ trip, featureFlags = {}, bookingKind = "trip" }
                 <p className="text-xs font-semibold text-zinc-900">Need help deciding?</p>
                 <p className="mt-1 text-xs text-zinc-500">
                   Call us at{" "}
-                  <a href="tel:+919220429249" className="font-medium text-zinc-900">
-                    +91 92204 29249
+                  <a href={`tel:${contactDetails.whatsapp}`} className="font-medium text-zinc-900">
+                    {contactDetails.phone}
                   </a>
                 </p>
               </div>
