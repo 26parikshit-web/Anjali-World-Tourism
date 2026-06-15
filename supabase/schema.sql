@@ -33,6 +33,39 @@ CREATE TABLE IF NOT EXISTS trips (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Group trips: scheduled departures with fixed capacity
+CREATE TABLE IF NOT EXISTS group_trips (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  slug TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  hosted_place TEXT NOT NULL,
+  departure_date TIMESTAMPTZ NOT NULL,
+  max_capacity INTEGER NOT NULL CHECK (max_capacity > 0),
+  spots_booked INTEGER NOT NULL DEFAULT 0 CHECK (spots_booked >= 0),
+  category TEXT,
+  short_description TEXT,
+  description TEXT,
+  duration TEXT,
+  price TEXT,
+  pricing_packages JSONB NOT NULL DEFAULT '[]'::jsonb,
+  discount_percent NUMERIC(5,2),
+  discount_ends_at TIMESTAMPTZ,
+  group_size TEXT,
+  difficulty TEXT,
+  best_season TEXT,
+  hero_image TEXT,
+  highlights JSONB DEFAULT '[]'::jsonb,
+  itinerary JSONB DEFAULT '[]'::jsonb,
+  inclusions JSONB DEFAULT '[]'::jsonb,
+  exclusions JSONB DEFAULT '[]'::jsonb,
+  gallery JSONB DEFAULT '[]'::jsonb,
+  tags JSONB DEFAULT '[]'::jsonb,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  CONSTRAINT group_trips_spots_within_capacity CHECK (spots_booked <= max_capacity)
+);
+
 -- Reviews Table
 CREATE TABLE IF NOT EXISTS reviews (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,

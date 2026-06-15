@@ -8,7 +8,9 @@ import {
   sanitizeBookingContact,
   validateBookingDetails,
 } from "@/lib/form-validation";
-import { computeTripQuote, fetchTripForPricing, paiseToRupees } from "@/lib/trip-pricing";
+import { computeTripQuote, fetchTripForPricing, fetchGroupTripForPricing, paiseToRupees } from "@/lib/trip-pricing";
+import { canAccommodatePax } from "@/lib/group-trip-capacity";
+import { reserveGroupTripSpots } from "@/lib/group-trip-reserve";
 
 const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY
   ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -45,6 +47,7 @@ export async function POST(request) {
       email,
       phone,
       departureDate,
+      bookingKind = "trip",
     } = body;
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -92,11 +95,17 @@ export async function POST(request) {
 
     const order = await razorpay.orders.fetch(razorpay_order_id);
     const resolvedPackageKey = order?.notes?.package_key || packageKey;
+    const isGroup = order?.notes?.booking_kind === "group" || bookingKind === "group";
 
-    const trip = await fetchTripForPricing(tripSlug);
+    const trip = isGroup
+      ? await fetchGroupTripForPricing(tripSlug)
+      : await fetchTripForPricing(tripSlug);
     if (!trip) {
       return NextResponse.json(
-        { success: false, message: "Trip not found or inactive." },
+        {
+          success: false,
+          message: isGroup ? "Group trip not found or inactive." : "Trip not found or inactive.",
+        },
         { status: 404 }
       );
     }
@@ -111,6 +120,13 @@ export async function POST(request) {
       return NextResponse.json(
         { success: false, message: quote.message },
         { status: 400 }
+      );
+    }
+
+    if (isGroup && !canAccommodatePax(trip, quote.pax)) {
+      return NextResponse.json(
+        { success: false, message: "Not enough spots remaining for this group trip." },
+        { status: 409 }
       );
     }
 
@@ -134,13 +150,26 @@ export async function POST(request) {
 
     let bookingId = null;
 
+    if (isGroup) {
+      const reserved = await reserveGroupTripSpots(trip.id, quote.pax);
+      if (!reserved) {
+        return NextResponse.json(
+          { success: false, message: "Could not reserve spots — group trip may be full." },
+          { status: 409 }
+        );
+      }
+    }
+
     if (supabase) {
       const { data, error } = await supabase
         .from("bookings")
         .insert([
           {
+            booking_kind: isGroup ? "group" : "trip",
             trip_slug: tripSlug,
             trip_name: tripName,
+            group_trip_id: isGroup ? trip.id : null,
+            group_trip_slug: isGroup ? tripSlug : null,
             customer_name: contact.name,
             customer_email: contact.email,
             customer_phone: contact.phone,
@@ -149,7 +178,7 @@ export async function POST(request) {
             discount_percent: quote.discount.active ? quote.discount.percent : null,
             amount_before_discount: amountBeforeDiscount,
             amount: quote.totalRupees,
-            departure_date: departureDate || null,
+            departure_date: departureDate || (isGroup ? trip.departure_date : null),
             razorpay_order_id,
             razorpay_payment_id,
             status: "paid",

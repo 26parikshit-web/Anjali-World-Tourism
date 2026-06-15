@@ -1,4 +1,4 @@
-import { getTrips, getTripSections } from "@/lib/data-service";
+import { getTrips, getTripSections, getGroupTrips } from "@/lib/data-service";
 import { collectTripCardImages } from "@/lib/home-trip-cards";
 import { getTripListPrice } from "@/lib/trip-pricing";
 import { TripsCatalog } from "@/components/pages/trips-catalog";
@@ -14,7 +14,7 @@ export const metadata = buildPageMetadata({
 });
 
 export default async function TripsPage() {
-  const trips = await getTrips();
+  const [trips, groupTrips] = await Promise.all([getTrips(), getGroupTrips()]);
   const tripSections = getTripSections();
 
   const tripsByCategory = trips.reduce((acc, trip) => {
@@ -48,5 +48,5 @@ export default async function TripsPage() {
     }),
   }));
 
-  return <TripsCatalog sections={sections} />;
+  return <TripsCatalog sections={sections} groupTrips={groupTrips} />;
 }

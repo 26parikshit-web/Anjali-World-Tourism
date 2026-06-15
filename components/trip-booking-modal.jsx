@@ -34,6 +34,7 @@ export function TripBookingModal({
   open,
   onClose,
   razorpayEnabled = false,
+  bookingKind = "trip",
 }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -46,8 +47,11 @@ export function TripBookingModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-
-  const endDate = departureDate ? getTripEndDate(departureDate, trip.itinerary?.length || 1) : null;
+  const isGroup = bookingKind === "group";
+  const fixedDeparture = isGroup && trip.departure_date ? new Date(trip.departure_date) : null;
+  const endDate = (fixedDeparture || departureDate)
+    ? getTripEndDate(fixedDeparture || departureDate, trip.itinerary?.length || 1)
+    : null;
 
   const fetchQuote = useCallback(async () => {
     if (!trip?.slug) return;
@@ -57,7 +61,10 @@ export function TripBookingModal({
         pax: String(pax),
         package: selectedPackage,
       });
-      const res = await fetch(`/api/trips/${trip.slug}/quote?${params}`);
+      const quotePath = isGroup
+        ? `/api/group-trips/${trip.slug}/quote`
+        : `/api/trips/${trip.slug}/quote`;
+      const res = await fetch(`${quotePath}?${params}`);
       const data = await res.json();
       if (!res.ok || !data.valid) {
         throw new Error(data.message || "Could not load pricing.");
@@ -70,7 +77,7 @@ export function TripBookingModal({
     } finally {
       setQuoteLoading(false);
     }
-  }, [trip?.slug, pax, selectedPackage]);
+  }, [trip?.slug, pax, selectedPackage, isGroup]);
 
   useEffect(() => {
     if (!open) return;
@@ -211,12 +218,13 @@ export function TripBookingModal({
         body: JSON.stringify({
           tripSlug: trip.slug,
           tripName: trip.name,
+          bookingKind,
           packageKey: selectedPackage,
           pax,
           name: contact.name,
           email: contact.email,
           phone: contact.phone,
-          departureDate: departureDate?.toISOString(),
+          departureDate: (fixedDeparture || departureDate)?.toISOString(),
         }),
       });
 
@@ -242,12 +250,13 @@ export function TripBookingModal({
               ...response,
               tripSlug: trip.slug,
               tripName: trip.name,
+              bookingKind,
               packageKey: selectedPackage,
               pax,
               name: contact.name,
               email: contact.email,
               phone: contact.phone,
-              departureDate: departureDate?.toISOString(),
+              departureDate: (fixedDeparture || departureDate)?.toISOString(),
             }),
           });
 
@@ -412,9 +421,23 @@ export function TripBookingModal({
                   </h2>
 
                   <TripDatePicker
-                    selectedDate={departureDate}
-                    onSelect={onDepartureChange}
+                    selectedDate={fixedDeparture || departureDate}
+                    onSelect={isGroup ? undefined : onDepartureChange}
                   />
+                  {isGroup && fixedDeparture && (
+                    <p className="text-xs text-zinc-500">
+                      Fixed group departure — {formatFullDate(fixedDeparture)}
+                    </p>
+                  )}
+                  {quote?.capacity && (
+                    <p
+                      className={`text-xs font-medium ${
+                        quote.capacity.isFull ? "text-red-600" : "text-emerald-700"
+                      }`}
+                    >
+                      {quote.capacity.label}
+                    </p>
+                  )}
 
                   <div className="rounded-xl border border-zinc-200 p-3.5 sm:p-4">
                     <h3 className="mb-4 text-sm font-semibold text-zinc-900">Traveler Details</h3>
@@ -552,8 +575,16 @@ export function TripBookingModal({
                       <span className="w-6 text-center font-semibold tabular-nums">{pax}</span>
                       <button
                         type="button"
-                        onClick={() => setPax((n) => Math.min(20, n + 1))}
-                        className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-900 text-white transition-colors hover:bg-zinc-700"
+                        onClick={() =>
+                          setPax((n) => {
+                            const maxPax = quote?.capacity?.remaining
+                              ? Math.min(20, quote.capacity.remaining)
+                              : 20;
+                            return Math.min(maxPax, n + 1);
+                          })
+                        }
+                        disabled={quote?.capacity?.isFull}
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-900 text-white transition-colors hover:bg-zinc-700 disabled:opacity-40"
                         aria-label="Increase travelers"
                       >
                         <Plus className="h-3.5 w-3.5" />
@@ -605,10 +636,10 @@ export function TripBookingModal({
 
                   <Button
                     onClick={handleBookNow}
-                    disabled={quoteLoading || !quote}
+                    disabled={quoteLoading || !quote || quote?.capacity?.isFull}
                     className="mt-5 hidden w-full rounded-full bg-zinc-900 py-4 text-sm font-semibold text-white hover:bg-zinc-800 sm:mt-6 md:inline-flex"
                   >
-                    Book Now
+                    {quote?.capacity?.isFull ? "Fully Booked" : "Book Now"}
                   </Button>
                 </div>
               </div>
@@ -626,10 +657,10 @@ export function TripBookingModal({
                 </div>
                 <Button
                   onClick={handleBookNow}
-                  disabled={quoteLoading || !quote}
+                  disabled={quoteLoading || !quote || quote?.capacity?.isFull}
                   className="shrink-0 rounded-full bg-zinc-900 px-5 py-3 text-sm font-semibold text-white hover:bg-zinc-800"
                 >
-                  Book Now
+                  {quote?.capacity?.isFull ? "Full" : "Book Now"}
                 </Button>
               </div>
             </div>

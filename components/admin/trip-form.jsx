@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Plus, X } from "lucide-react";
-import { revalidateTripsOnServer } from "@/lib/revalidate-trips-client";
+import { revalidateTripsOnServer, revalidateGroupTripsOnServer } from "@/lib/revalidate-trips-client";
 import { pickTripRow } from "@/lib/trip-row";
+import { pickGroupTripRow } from "@/lib/group-trip-row";
 import { normalizeGallery } from "@/lib/trip-media";
 import { TripMediaEditor } from "@/components/admin/trip-media-editor";
 import {
@@ -31,10 +32,13 @@ const categories = [
 
 const difficulties = ["Easy", "Moderate", "Challenging", "Difficult"];
 
-export function TripForm({ trip }) {
+export function TripForm({ trip, variant = "trip" }) {
   const router = useRouter();
   const supabase = createClient();
   const isEditing = !!trip;
+  const isGroup = variant === "group";
+  const table = isGroup ? "group_trips" : "trips";
+  const adminListPath = isGroup ? "/admin/group-trips" : "/admin/trips";
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -79,6 +83,10 @@ export function TripForm({ trip }) {
       pricing_packages: trip?.pricing_packages || [],
       discount_percent: trip?.discount_percent ?? "",
       discount_ends_at: trip?.discount_ends_at || null,
+      hosted_place: trip?.hosted_place || "",
+      departure_date: trip?.departure_date || null,
+      max_capacity: trip?.max_capacity ?? 20,
+      spots_booked: trip?.spots_booked ?? 0,
     };
   };
 
@@ -91,6 +99,9 @@ export function TripForm({ trip }) {
   );
   const [discountEndsAt, setDiscountEndsAt] = useState(
     toDatetimeLocalValue(trip?.discount_ends_at)
+  );
+  const [departureAt, setDepartureAt] = useState(
+    toDatetimeLocalValue(trip?.departure_date)
   );
   const [isLoadedFromUpload, setIsLoadedFromUpload] = useState(false);
 
@@ -179,12 +190,38 @@ export function TripForm({ trip }) {
         throw new Error("Set an end date/time for the discount.");
       }
 
-      const dataToSave = pickTripRow({
+      if (isGroup) {
+        if (!formData.hosted_place?.trim()) {
+          throw new Error("Hosted place is required for group trips.");
+        }
+        if (!departureAt) {
+          throw new Error("Departure date and time are required.");
+        }
+        const capacity = Number.parseInt(String(formData.max_capacity), 10);
+        if (!capacity || capacity < 1) {
+          throw new Error("Max capacity must be at least 1.");
+        }
+        const booked = Number.parseInt(String(formData.spots_booked), 10) || 0;
+        if (booked > capacity) {
+          throw new Error("Spots booked cannot exceed max capacity.");
+        }
+      }
+
+      const rowPicker = isGroup ? pickGroupTripRow : pickTripRow;
+      const dataToSave = rowPicker({
         ...formData,
         price: deriveLegacyPriceLabel(pricing_packages),
         pricing_packages,
         discount_percent: parsedDiscount > 0 ? parsedDiscount : null,
         discount_ends_at: parsedDiscount > 0 ? fromDatetimeLocalValue(discountEndsAt) : null,
+        ...(isGroup
+          ? {
+              hosted_place: formData.hosted_place.trim(),
+              departure_date: fromDatetimeLocalValue(departureAt),
+              max_capacity: Number.parseInt(String(formData.max_capacity), 10),
+              spots_booked: Number.parseInt(String(formData.spots_booked), 10) || 0,
+            }
+          : {}),
         gallery: normalizeGallery(formData.gallery),
         highlights: formData.highlights.filter(Boolean),
         inclusions: formData.inclusions.filter(Boolean),
@@ -194,18 +231,22 @@ export function TripForm({ trip }) {
 
       if (isEditing) {
         const { error } = await supabase
-          .from("trips")
+          .from(table)
           .update(dataToSave)
           .eq("id", trip.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("trips").insert([dataToSave]);
+        const { error } = await supabase.from(table).insert([dataToSave]);
         if (error) throw error;
       }
 
-      await revalidateTripsOnServer();
+      if (isGroup) {
+        await revalidateGroupTripsOnServer();
+      } else {
+        await revalidateTripsOnServer();
+      }
 
-      router.push("/admin/trips");
+      router.push(adminListPath);
       router.refresh();
     } catch (err) {
       setError(err.message);
@@ -331,6 +372,73 @@ export function TripForm({ trip }) {
           </div>
         </div>
       </div>
+
+      {isGroup && (
+        <div className="bg-white rounded-xl border border-zinc-200 p-6">
+          <h2 className="text-base font-semibold text-zinc-900 mb-4">Group departure</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-medium text-zinc-700 mb-1.5">
+                Hosted place *
+              </label>
+              <input
+                type="text"
+                value={formData.hosted_place}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, hosted_place: e.target.value }))
+                }
+                placeholder="e.g., Kedarnath, Spiti Valley"
+                required
+                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm outline-none focus:border-zinc-400 focus:bg-white"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-zinc-700 mb-1.5">
+                Departure date & time *
+              </label>
+              <input
+                type="datetime-local"
+                value={departureAt}
+                onChange={(e) => setDepartureAt(e.target.value)}
+                required
+                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm outline-none focus:border-zinc-400 focus:bg-white"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-zinc-700 mb-1.5">
+                Max capacity (slots) *
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={formData.max_capacity}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, max_capacity: e.target.value }))
+                }
+                required
+                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm outline-none focus:border-zinc-400 focus:bg-white"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-zinc-700 mb-1.5">
+                Spots booked
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={formData.spots_booked}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, spots_booked: e.target.value }))
+                }
+                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm outline-none focus:border-zinc-400 focus:bg-white"
+              />
+              <p className="mt-1 text-[11px] text-zinc-500">
+                Usually auto-updated on payment. Adjust manually if needed.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Trip Details */}
       <div className="bg-white rounded-xl border border-zinc-200 p-6">

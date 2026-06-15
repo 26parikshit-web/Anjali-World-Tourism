@@ -5,7 +5,8 @@ import {
   sanitizeBookingContact,
   validateBookingDetails,
 } from "@/lib/form-validation";
-import { computeTripQuote, fetchTripForPricing } from "@/lib/trip-pricing";
+import { computeTripQuote, fetchTripForPricing, fetchGroupTripForPricing } from "@/lib/trip-pricing";
+import { canAccommodatePax, capacityLabel } from "@/lib/group-trip-capacity";
 
 function getRazorpay() {
   const keyId = process.env.RAZORPAY_KEY_ID;
@@ -27,6 +28,7 @@ export async function POST(request) {
     const {
       tripSlug,
       tripName,
+      bookingKind = "trip",
       packageKey = "standard",
       pax,
       name,
@@ -34,6 +36,8 @@ export async function POST(request) {
       phone,
       departureDate,
     } = body;
+
+    const isGroup = bookingKind === "group";
 
     if (!tripSlug || !tripName) {
       return NextResponse.json(
@@ -50,11 +54,29 @@ export async function POST(request) {
       );
     }
 
-    const trip = await fetchTripForPricing(tripSlug);
+    const trip = isGroup
+      ? await fetchGroupTripForPricing(tripSlug)
+      : await fetchTripForPricing(tripSlug);
     if (!trip) {
       return NextResponse.json(
-        { success: false, message: "Trip not found or inactive." },
+        {
+          success: false,
+          message: isGroup ? "Group trip not found or inactive." : "Trip not found or inactive.",
+        },
         { status: 404 }
+      );
+    }
+
+    if (isGroup && !canAccommodatePax(trip, pax)) {
+      const cap = capacityLabel(trip);
+      return NextResponse.json(
+        {
+          success: false,
+          message: cap.isFull
+            ? "This group trip is fully booked."
+            : `Only ${cap.remaining} spot${cap.remaining === 1 ? "" : "s"} left.`,
+        },
+        { status: 409 }
       );
     }
 
@@ -95,8 +117,9 @@ export async function POST(request) {
     const order = await razorpay.orders.create({
       amount: amountPaise,
       currency: "INR",
-      receipt: `trip_${tripSlug}_${Date.now()}`.slice(0, 40),
+      receipt: `${isGroup ? "group" : "trip"}_${tripSlug}_${Date.now()}`.slice(0, 40),
       notes: {
+        booking_kind: isGroup ? "group" : "trip",
         trip_slug: tripSlug,
         trip_name: tripName,
         package_key: quote.packageKey,
@@ -106,6 +129,7 @@ export async function POST(request) {
         customer_phone: contact.phone,
         departure_date: departureDate || "",
         discount_percent: String(quote.discount.active ? quote.discount.percent : 0),
+        ...(isGroup ? { group_trip_id: trip.id } : {}),
       },
     });
 

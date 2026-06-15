@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard,
   Map,
+  Users,
   Star,
   Image,
   MessageSquare,
@@ -22,6 +23,7 @@ const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/home", label: "Homepage", icon: Home },
   { href: "/admin/trips", label: "Trips", icon: Map },
+  { href: "/admin/group-trips", label: "Group Trips", icon: Users },
   { href: "/admin/reviews", label: "Reviews", icon: Star },
   { href: "/admin/gallery", label: "Gallery", icon: Image },
   { href: "/admin/enquiries", label: "Enquiries", icon: Mail },

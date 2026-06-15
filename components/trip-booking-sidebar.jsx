@@ -7,19 +7,36 @@ import { DiscountCountdown } from "@/components/discount-countdown";
 import {
   buildWhatsAppMessage,
   buildWhatsAppUrl,
+  formatFullDate,
   getDefaultBookingDate,
 } from "@/lib/trip-booking";
 import { getTripListPrice } from "@/lib/trip-pricing";
+import { capacityLabel } from "@/lib/group-trip-capacity";
 import { contactDetails } from "@/lib/site-data";
 import { TripBookingModal } from "@/components/trip-booking-modal";
 import { TripDatePicker } from "@/components/trip-date-picker";
 
-export function TripBookingSidebar({ trip, departureDate, onDepartureChange, razorpayEnabled = false }) {
+export function TripBookingSidebar({
+  trip,
+  departureDate,
+  onDepartureChange,
+  razorpayEnabled = false,
+  bookingKind = "trip",
+}) {
   const [bookingOpen, setBookingOpen] = useState(false);
+  const isGroup = bookingKind === "group";
 
-  const defaultDate = useMemo(() => getDefaultBookingDate(), []);
+  const defaultDate = useMemo(() => {
+    if (isGroup && trip.departure_date) return new Date(trip.departure_date);
+    return getDefaultBookingDate();
+  }, [isGroup, trip.departure_date]);
+
   const selectedDate = departureDate || defaultDate;
   const listPrice = useMemo(() => getTripListPrice(trip), [trip]);
+  const capacity = useMemo(
+    () => (isGroup ? capacityLabel(trip) : null),
+    [isGroup, trip]
+  );
 
   const whatsappUrl = buildWhatsAppUrl(
     contactDetails.whatsapp,
@@ -37,7 +54,7 @@ export function TripBookingSidebar({ trip, departureDate, onDepartureChange, raz
         <div className="relative overflow-hidden bg-zinc-900 px-4 py-4 text-white sm:px-6 sm:py-5">
           <Plane className="absolute -right-2 -top-2 h-16 w-16 rotate-12 text-white/10 sm:h-20 sm:w-20" />
           <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-            Starting from
+            {isGroup ? trip.hosted_place : "Starting from"}
           </p>
           {listPrice.discountActive && (
             <p className="mt-1 text-sm text-zinc-400 line-through tabular-nums">
@@ -56,10 +73,25 @@ export function TripBookingSidebar({ trip, departureDate, onDepartureChange, raz
               <DiscountCountdown endsAt={listPrice.discountEndsAt} className="mt-2 text-amber-200" />
             </div>
           )}
+          {capacity && (
+            <p className="mt-2 text-xs font-medium text-amber-300">{capacity.label}</p>
+          )}
         </div>
 
         <div className="space-y-4 p-4 sm:space-y-5 sm:p-6">
-          <TripDatePicker selectedDate={selectedDate} onSelect={handleDateSelect} compact />
+          {!isGroup && (
+            <TripDatePicker selectedDate={selectedDate} onSelect={handleDateSelect} compact />
+          )}
+          {isGroup && trip.departure_date && (
+            <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-700">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                Group departure
+              </p>
+              <p className="mt-1 font-medium">
+                {formatFullDate(new Date(trip.departure_date))}
+              </p>
+            </div>
+          )}
 
           {/* Trip meta */}
           <div className="space-y-2 text-sm">
@@ -89,9 +121,10 @@ export function TripBookingSidebar({ trip, departureDate, onDepartureChange, raz
           <div className="space-y-2">
             <Button
               onClick={() => setBookingOpen(true)}
-              className="w-full rounded-xl bg-zinc-900 py-4 text-sm font-semibold text-white hover:bg-zinc-800"
+              disabled={capacity?.isFull}
+              className="w-full rounded-xl bg-zinc-900 py-4 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-50"
             >
-              Book Now
+              {capacity?.isFull ? "Fully Booked" : isGroup ? "Join Group Trip" : "Book Now"}
             </Button>
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
               <Button
@@ -136,9 +169,10 @@ export function TripBookingSidebar({ trip, departureDate, onDepartureChange, raz
             <div className="flex items-stretch gap-2">
               <Button
                 onClick={() => setBookingOpen(true)}
-                className="h-10 flex-1 rounded-xl bg-white text-sm font-semibold text-zinc-900 hover:bg-zinc-100"
+                disabled={capacity?.isFull}
+                className="h-10 flex-1 rounded-xl bg-white text-sm font-semibold text-zinc-900 hover:bg-zinc-100 disabled:opacity-50"
               >
-                Book Now
+                {capacity?.isFull ? "Full" : isGroup ? "Join" : "Book Now"}
               </Button>
               <a
                 href={whatsappUrl}
@@ -166,6 +200,7 @@ export function TripBookingSidebar({ trip, departureDate, onDepartureChange, raz
         open={bookingOpen}
         onClose={() => setBookingOpen(false)}
         razorpayEnabled={razorpayEnabled}
+        bookingKind={bookingKind}
       />
     </>
   );

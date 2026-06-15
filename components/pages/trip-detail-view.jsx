@@ -9,9 +9,10 @@ import { TripGallery } from "@/components/trip-gallery";
 import { TripItinerarySection } from "@/components/trip-itinerary-section";
 import { TripBookingSidebar } from "@/components/trip-booking-sidebar";
 import { cloudinaryHeroUrl } from "@/lib/cloudinary";
-import { getDefaultBookingDate } from "@/lib/trip-booking";
+import { getDefaultBookingDate, formatFullDate } from "@/lib/trip-booking";
+import { capacityLabel } from "@/lib/group-trip-capacity";
 
-export function TripDetailView({ trip, featureFlags = {} }) {
+export function TripDetailView({ trip, featureFlags = {}, bookingKind = "trip" }) {
   const description = trip.description || "";
   const shortDescription = trip.short_description || trip.shortDescription || "";
   const heroImage = trip.hero_image || trip.heroImage;
@@ -22,8 +23,14 @@ export function TripDetailView({ trip, featureFlags = {} }) {
   const exclusions = trip.exclusions || [];
   const tags = trip.tags || [];
 
-  const defaultDeparture = useMemo(() => getDefaultBookingDate(), []);
+  const defaultDeparture = useMemo(() => {
+    if (bookingKind === "group" && trip.departure_date) {
+      return new Date(trip.departure_date);
+    }
+    return getDefaultBookingDate();
+  }, [bookingKind, trip.departure_date]);
   const [departureDate, setDepartureDate] = useState(defaultDeparture);
+  const groupCapacity = bookingKind === "group" ? capacityLabel(trip) : null;
 
   return (
     <div className="min-h-screen overflow-x-hidden pt-16 text-zinc-900">
@@ -58,6 +65,31 @@ export function TripDetailView({ trip, featureFlags = {} }) {
       </section>
 
       <div className="mx-auto w-full max-w-7xl px-4 py-8 pb-32 sm:px-6 sm:py-12 sm:pb-12 lg:px-8">
+        {bookingKind === "group" && (
+          <Reveal className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-700">
+                  Group departure
+                </p>
+                <h2 className="mt-1 text-lg font-semibold text-zinc-900">
+                  Hosted in {trip.hosted_place}
+                </h2>
+                {trip.departure_date && (
+                  <p className="mt-1 text-sm text-zinc-600">
+                    {formatFullDate(new Date(trip.departure_date))}
+                  </p>
+                )}
+              </div>
+              <div className="rounded-xl bg-white px-4 py-3 text-center shadow-sm">
+                <p className="text-2xl font-bold tabular-nums text-zinc-900">
+                  {groupCapacity?.remaining ?? 0}
+                </p>
+                <p className="text-[11px] uppercase tracking-wide text-zinc-500">spots left</p>
+              </div>
+            </div>
+          </Reveal>
+        )}
         <div className="grid min-w-0 gap-6 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="min-w-0 space-y-8 sm:space-y-10">
             <Reveal>
@@ -166,6 +198,7 @@ export function TripDetailView({ trip, featureFlags = {} }) {
                 departureDate={departureDate}
                 onDepartureChange={setDepartureDate}
                 razorpayEnabled={Boolean(featureFlags.razorpay_payments)}
+                bookingKind={bookingKind}
               />
 
               <div className="mt-4 hidden rounded-xl border border-zinc-200 bg-zinc-50 p-4 lg:block">
@@ -185,11 +218,11 @@ export function TripDetailView({ trip, featureFlags = {} }) {
       <div className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
         <Reveal>
           <Link
-            href="/trips"
+            href={bookingKind === "group" ? "/trips#group-trips" : "/trips"}
             className="inline-flex items-center gap-2 text-sm text-zinc-500 transition-colors hover:text-zinc-900"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to all trips
+            {bookingKind === "group" ? "Back to group trips" : "Back to all trips"}
           </Link>
         </Reveal>
       </div>
