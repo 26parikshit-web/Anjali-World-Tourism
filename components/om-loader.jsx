@@ -1,21 +1,21 @@
 "use client";
 
-import { useState, useLayoutEffect } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 const LOADER_SEEN_KEY = "anjali-om-loader-seen";
 
 export function OmLoader({ onLoadComplete }) {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   const [isFading, setIsFading] = useState(false);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (sessionStorage.getItem(LOADER_SEEN_KEY)) {
-      setIsVisible(false);
       onLoadComplete?.();
       return;
     }
 
+    setIsVisible(true);
     const minDisplayTime = 2500;
 
     const fadeTimer = setTimeout(() => {
@@ -35,8 +35,6 @@ export function OmLoader({ onLoadComplete }) {
   }, [onLoadComplete]);
 
   if (!isVisible) return null;
-
-  if (typeof document === "undefined") return null;
 
   // Generate 10 revolving rings with varying sizes and speeds
   // Base size is smaller, will be scaled via CSS for responsiveness

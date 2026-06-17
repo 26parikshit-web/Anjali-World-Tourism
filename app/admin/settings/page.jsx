@@ -8,7 +8,7 @@ export default async function AdminSettingsPage() {
   const supabase = await createClient();
   const { data: flags, error } = await supabase
     .from("feature_flags")
-    .select("id, key, value, created_at, updated_at")
+    .select("*")
     .order("category", { ascending: true })
     .order("label", { ascending: true });
 

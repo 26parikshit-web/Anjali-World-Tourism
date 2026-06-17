@@ -62,7 +62,7 @@ export function BookingsManager({ bookings: initialBookings }) {
     try {
       const { data, error } = await supabase
         .from("bookings")
-        .select("id, created_at, booking_kind, trip_id, razorpay_order_id, razorpay_payment_id, amount_paid, customer_name, customer_email, customer_phone, travel_date, travelers_count, special_requests, payment_status, booking_status")
+        .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
       setBookings(data || []);

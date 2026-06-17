@@ -48,17 +48,5 @@ export default async function TripsPage() {
     }),
   }));
 
-  const slimGroupTrips = groupTrips.map((trip) => ({
-    id: trip.id,
-    name: trip.name,
-    slug: trip.slug,
-    departure_date: trip.departure_date,
-    hosted_place: trip.hosted_place,
-    capacity: trip.capacity,
-    price: trip.price,
-    hero_image: trip.hero_image,
-    short_description: trip.short_description,
-  }));
-
-  return <TripsCatalog sections={sections} groupTrips={slimGroupTrips} />;
+  return <TripsCatalog sections={sections} groupTrips={groupTrips} />;
 }

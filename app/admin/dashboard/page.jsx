@@ -22,7 +22,7 @@ export default async function AdminDashboardPage() {
 
   const { data: recentContacts } = await supabase
     .from("contact_submissions")
-    .select("id, name, email, status, created_at")
+    .select("*")
     .order("created_at", { ascending: false })
     .limit(5);
 

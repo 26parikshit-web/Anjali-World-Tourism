@@ -6,7 +6,7 @@ export default async function AdminContactsPage() {
   
   const { data: contacts } = await supabase
     .from("contact_submissions")
-    .select("id, created_at, name, email, phone, subject, message, status")
+    .select("*")
     .order("created_at", { ascending: false });
 
   return (
