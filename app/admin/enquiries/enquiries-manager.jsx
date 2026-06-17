@@ -42,7 +42,7 @@ export function EnquiriesManager({ initialEnquiries = [] }) {
   const fetchEnquiries = async () => {
     setLoading(true);
     try {
-      let query = supabase.from("enquiries").select("*").order("created_at", { ascending: false });
+      let query = supabase.from("enquiries").select("id, created_at, name, phone, trip_name, travel_date, travelers, details, status, source").order("created_at", { ascending: false });
 
       if (filter !== "all") {
         query = query.eq("status", filter);

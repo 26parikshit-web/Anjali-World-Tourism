@@ -7,7 +7,7 @@ export default async function AdminTripsPage() {
   const supabase = await createClient();
   const { data: trips, error } = await supabase
     .from("trips")
-    .select("*")
+    .select("id, created_at, updated_at, name, slug, category, duration, price, hero_image, short_description, is_active, is_featured")
     .order("created_at", { ascending: false });
 
   return (

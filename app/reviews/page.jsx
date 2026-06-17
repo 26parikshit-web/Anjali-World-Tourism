@@ -1,4 +1,4 @@
-import { getReviews, getTrips } from "@/lib/data-service";
+import { getReviews, getTripNames } from "@/lib/data-service";
 import { ReviewsPageView } from "@/components/pages/reviews-page-view";
 import { buildPageMetadata } from "@/lib/seo";
 import { hasReviewMedia, mapReviewToShowcaseItem } from "@/lib/review-media";
@@ -13,17 +13,12 @@ export const metadata = buildPageMetadata({
 });
 
 export default async function ReviewsPage() {
-  const [reviews, trips] = await Promise.all([getReviews(), getTrips()]);
+  const [reviews, reviewTrips] = await Promise.all([getReviews(), getTripNames()]);
 
   const mediaReviews = reviews.filter(hasReviewMedia);
   const textReviews = reviews.filter((review) => !hasReviewMedia(review));
 
   const photoWallItems = mediaReviews.map(mapReviewToShowcaseItem);
-
-  const reviewTrips = trips.map((trip) => ({
-    id: trip.id,
-    name: trip.name,
-  }));
 
   return (
     <ReviewsPageView

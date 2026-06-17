@@ -75,10 +75,30 @@ export default async function TripDetailPage({ params }) {
     touristType: trip.category,
   };
 
+  const mappedTrip = {
+    id: trip.id,
+    name: trip.name,
+    slug: trip.slug,
+    category: trip.category,
+    description: trip.description,
+    short_description: trip.short_description,
+    shortDescription: trip.shortDescription,
+    hero_image: trip.hero_image,
+    heroImage: trip.heroImage,
+    highlights: trip.highlights,
+    itinerary: trip.itinerary,
+    gallery: trip.gallery,
+    inclusions: trip.inclusions,
+    exclusions: trip.exclusions,
+    tags: trip.tags,
+    price: trip.price,
+    pricing_model: trip.pricing_model,
+  };
+
   return (
     <>
       <JsonLd data={tripJsonLd} />
-      <TripDetailView trip={trip} featureFlags={featureFlags} />
+      <TripDetailView trip={mappedTrip} featureFlags={featureFlags} />
     </>
   );
 }

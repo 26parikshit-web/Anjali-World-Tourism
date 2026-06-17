@@ -52,10 +52,31 @@ export default async function GroupTripDetailPage({ params }) {
     touristType: "Group Trip",
   };
 
+  const mappedTrip = {
+    id: trip.id,
+    name: trip.name,
+    slug: trip.slug,
+    description: trip.description,
+    short_description: trip.short_description,
+    hero_image: trip.hero_image,
+    highlights: trip.highlights,
+    itinerary: trip.itinerary,
+    gallery: trip.gallery,
+    inclusions: trip.inclusions,
+    exclusions: trip.exclusions,
+    tags: trip.tags,
+    price: trip.price,
+    departure_date: trip.departure_date,
+    hosted_place: trip.hosted_place,
+    capacity: trip.capacity,
+    spots_booked: trip.spots_booked,
+    max_capacity: trip.max_capacity,
+  };
+
   return (
     <>
       <JsonLd data={tripJsonLd} />
-      <TripDetailView trip={trip} featureFlags={featureFlags} bookingKind="group" />
+      <TripDetailView trip={mappedTrip} featureFlags={featureFlags} bookingKind="group" />
     </>
   );
 }

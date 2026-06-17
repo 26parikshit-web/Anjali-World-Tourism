@@ -5,7 +5,7 @@ export default async function AdminGalleryPage() {
   const supabase = await createClient();
   
   const [{ data: gallery }, { data: trips }] = await Promise.all([
-    supabase.from("gallery").select("*").order("created_at", { ascending: false }),
+    supabase.from("gallery").select("id, image_url, trip_id, display_order, alt_text, created_at").order("created_at", { ascending: false }),
     supabase.from("trips").select("id, name, slug"),
   ]);
 

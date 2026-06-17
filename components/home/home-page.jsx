@@ -5,7 +5,7 @@ import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { motion } from "motion/react";
+import { motion, useInView } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { OmLoader } from "@/components/om-loader";
 import { Reveal } from "@/components/home/reveal";
@@ -75,35 +75,47 @@ const wordVariants = {
   show: { y: 0, opacity: 1 },
 };
 
-function SectionBackground({ background, alt }) {
+function SectionBackground({ background, alt, lazy = true }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "400px" });
+
+  const shouldRender = !lazy || isInView;
+
   if (!background) return null;
 
   if (background.type === "video") {
+    const sources = background.sources || [{ src: background.url, type: "video/mp4" }];
+    const mp4Source = sources.find((s) => s.type === "video/mp4") || sources[0];
+
     return (
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-        poster={background.poster || undefined}
-        className="optimized-video h-full w-full object-cover"
-      >
-        {(background.sources || [{ src: background.url, type: "video/mp4" }]).map(
-          (source) => (
-            <source key={source.src} src={source.src} type={source.type} />
-          )
+      <div ref={ref} className="h-full w-full">
+        {shouldRender && (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload={lazy ? "none" : "metadata"}
+            poster={background.poster || undefined}
+            className="optimized-video h-full w-full object-cover"
+          >
+            <source src={mp4Source.src} type={mp4Source.type} />
+          </video>
         )}
-      </video>
+      </div>
     );
   }
 
   return (
-    <img
-      src={background.url}
-      alt={alt}
-      className="h-full w-full object-cover"
-    />
+    <div ref={ref} className="h-full w-full">
+      {shouldRender && (
+        <img
+          src={background.url}
+          alt={alt}
+          className="h-full w-full object-cover"
+        />
+      )}
+    </div>
   );
 }
 
@@ -203,6 +215,7 @@ export function HomePage({ spiritualJourneys, friendsGetaway, homeContent }) {
           <SectionBackground
             background={homeContent?.hero?.background}
             alt="Anjali World Tourism hero background"
+            lazy={false}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-black/70" />
         </div>

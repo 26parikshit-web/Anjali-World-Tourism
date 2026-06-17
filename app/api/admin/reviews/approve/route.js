@@ -42,7 +42,7 @@ export async function POST(request) {
 
   const { data: review, error: fetchError } = await supabase
     .from("reviews")
-    .select("*")
+    .select("id, created_at, name, designation, trip, quote, image, is_approved, is_featured")
     .eq("id", reviewId)
     .single();
 

@@ -10,7 +10,7 @@ export default async function EditTripPage({ params }) {
   
   const { data: trip, error } = await supabase
     .from("trips")
-    .select("*")
+    .select("id, created_at, updated_at, name, slug, category, duration, price, hero_image, short_description, description, highlights, itinerary, gallery, inclusions, exclusions, tags, is_active, is_featured")
     .eq("id", id)
     .single();
 

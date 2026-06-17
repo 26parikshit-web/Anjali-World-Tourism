@@ -6,7 +6,7 @@ export default async function AdminEnquiriesPage() {
   const supabase = await createClient();
   const { data: enquiries } = await supabase
     .from("enquiries")
-    .select("*")
+    .select("id, created_at, name, phone, trip_name, travel_date, travelers, details, status, source")
     .order("created_at", { ascending: false });
 
   return (
