@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useRef } from "react";
+import { Fragment, useRef, useState } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -186,6 +186,7 @@ function HorizontalScrollSection({ title, subtitle, description, items, id, back
 }
 
 export function HomePage({ spiritualJourneys, friendsGetaway, homeContent }) {
+  const [pageReady, setPageReady] = useState(false);
   const headlineLines = homeContent?.hero?.headlineLines || [
     "Where meaningful journeys",
     "become lifelong memories.",
@@ -194,9 +195,12 @@ export function HomePage({ spiritualJourneys, friendsGetaway, homeContent }) {
     homeContent?.hero?.description ||
     "Anjali World Tourism crafts editorial-quality itineraries for spiritual pilgrimages, friend getaways, family holidays, and honeymoons across India — with hands-on planners, not algorithms.";
 
+  if (!pageReady) {
+    return <OmLoader onLoadComplete={() => setPageReady(true)} />;
+  }
+
   return (
     <div className="bg-white text-zinc-900">
-      <OmLoader />
 
       <section className="min-h-screen flex items-center justify-center relative overflow-hidden bg-zinc-950">
         <div className="absolute inset-0 z-0">
