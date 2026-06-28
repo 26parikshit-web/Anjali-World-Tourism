@@ -9,6 +9,8 @@ import { GroupTripCard } from "@/components/group-trip-card";
 import { useState } from "react";
 import { Search } from "lucide-react";
 
+const SAMPLE_TAGS = ["Honeymoon", "Spiritual", "Family", "Friends", "International", "Domestic", "Weekend"];
+
 export function TripsCatalog({ sections, groupTrips = [] }) {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -48,17 +50,35 @@ export function TripsCatalog({ sections, groupTrips = [] }) {
         }
       />
 
-      <div className="relative max-w-xl mx-auto -mt-6 mb-4">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-zinc-400" />
+      <div className="relative w-full -mt-6 mb-8">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-zinc-400" />
+          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by country, destination, or tag..."
+            className="w-full pl-11 pr-4 py-3.5 bg-white border border-zinc-200 rounded-2xl text-sm shadow-sm outline-none focus:border-zinc-400 focus:ring-4 focus:ring-zinc-400/10 transition-all"
+          />
         </div>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by country, destination, or tag..."
-          className="w-full pl-11 pr-4 py-3.5 bg-white border border-zinc-200 rounded-2xl text-sm shadow-sm outline-none focus:border-zinc-400 focus:ring-4 focus:ring-zinc-400/10 transition-all"
-        />
+        <div className="flex flex-wrap gap-2 mt-4 items-center">
+          <span className="text-xs text-zinc-500 font-medium mr-1">Popular:</span>
+          {SAMPLE_TAGS.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSearchQuery(tag)}
+              className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
+                searchQuery.toLowerCase() === tag.toLowerCase() 
+                  ? "bg-zinc-900 text-white" 
+                  : "bg-zinc-100 hover:bg-zinc-200 text-zinc-600"
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
       </div>
 
       {filteredGroupTrips.length > 0 && (
