@@ -6,13 +6,86 @@ import { CtaBand } from "@/components/home/cta-band";
 import { Reveal } from "@/components/home/reveal";
 import { TripsCatalogCard } from "@/components/trips-catalog-card";
 import { GroupTripCard } from "@/components/group-trip-card";
-import { useState } from "react";
-import { Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 
-const SAMPLE_TAGS = ["Honeymoon", "Spiritual", "Family", "Friends", "International", "Domestic", "Weekend"];
+const PAGE_SIZE = 9;
+const DEFAULT_CATEGORY = "Spiritual Journey";
+
+function TripSection({ section, sectionIndex }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const tripKey = section.trips.map((t) => t.slug).join(",");
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [tripKey]);
+
+  const totalPages = Math.ceil(section.trips.length / PAGE_SIZE);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const paginatedTrips = section.trips.slice(startIndex, startIndex + PAGE_SIZE);
+
+  return (
+    <section id={section.id} className="space-y-5">
+      <Reveal delay={sectionIndex * 0.05}>
+        <div className="max-w-2xl">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-600">
+            {section.title}
+          </p>
+          <h2 className="mt-1 text-xl font-semibold leading-tight text-zinc-900 sm:text-2xl">
+            {section.title}
+          </h2>
+          <p className="mt-1 text-sm leading-relaxed text-zinc-600">{section.description}</p>
+        </div>
+      </Reveal>
+
+      <div className="grid auto-rows-fr gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {paginatedTrips.map((trip, ti) => (
+          <Reveal key={trip.slug} delay={ti * 0.06} className="h-full">
+            <TripsCatalogCard trip={trip} />
+          </Reveal>
+        ))}
+      </div>
+
+      {totalPages > 1 && (
+        <div className="flex flex-col gap-3 border-t border-zinc-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-zinc-500">
+            Showing {startIndex + 1} to {Math.min(startIndex + PAGE_SIZE, section.trips.length)} of{" "}
+            {section.trips.length} trips
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="rounded-lg border border-zinc-200 p-1.5 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="text-sm text-zinc-600">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="rounded-lg border border-zinc-200 p-1.5 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Next page"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
 
 export function TripsCatalog({ sections, groupTrips = [] }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(DEFAULT_CATEGORY);
+
+  const categoryOptions = ["All", ...sections.map((s) => s.title)];
 
   const q = searchQuery.toLowerCase().trim();
 
@@ -24,7 +97,12 @@ export function TripsCatalog({ sections, groupTrips = [] }) {
     return nameMatch || placeMatch || tagMatch;
   });
 
-  const filteredSections = sections
+  const categorySections =
+    selectedCategory === "All"
+      ? sections
+      : sections.filter((section) => section.title === selectedCategory);
+
+  const filteredSections = categorySections
     .map((section) => ({
       ...section,
       trips: section.trips.filter((t) => {
@@ -35,6 +113,7 @@ export function TripsCatalog({ sections, groupTrips = [] }) {
       }),
     }))
     .filter((section) => section.trips.length > 0);
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 pb-16 pt-20 sm:px-6 lg:px-8">
       <PageHero
@@ -64,18 +143,19 @@ export function TripsCatalog({ sections, groupTrips = [] }) {
           />
         </div>
         <div className="flex flex-wrap gap-2 mt-4 items-center">
-          <span className="text-xs text-zinc-500 font-medium mr-1">Popular:</span>
-          {SAMPLE_TAGS.map((tag) => (
+          <span className="text-xs text-zinc-500 font-medium mr-1">Category:</span>
+          {categoryOptions.map((category) => (
             <button
-              key={tag}
-              onClick={() => setSearchQuery(tag)}
+              key={category}
+              type="button"
+              onClick={() => setSelectedCategory(category)}
               className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
-                searchQuery.toLowerCase() === tag.toLowerCase() 
-                  ? "bg-zinc-900 text-white" 
+                selectedCategory === category
+                  ? "bg-zinc-900 text-white"
                   : "bg-zinc-100 hover:bg-zinc-200 text-zinc-600"
               }`}
             >
-              {tag}
+              {category}
             </button>
           ))}
         </div>
@@ -109,40 +189,25 @@ export function TripsCatalog({ sections, groupTrips = [] }) {
       )}
 
       {filteredSections.map((section, si) => (
-        <section key={section.id} id={section.id} className="space-y-5">
-          <Reveal delay={si * 0.05}>
-            <div className="max-w-2xl">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-600">
-                {section.title}
-              </p>
-              <h2 className="mt-1 text-xl font-semibold leading-tight text-zinc-900 sm:text-2xl">
-                {section.title}
-              </h2>
-              <p className="mt-1 text-sm leading-relaxed text-zinc-600">
-                {section.description}
-              </p>
-            </div>
-          </Reveal>
-
-          <div className="grid auto-rows-fr gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {section.trips.map((trip, ti) => (
-              <Reveal key={trip.slug} delay={ti * 0.06} className="h-full">
-                <TripsCatalogCard trip={trip} />
-              </Reveal>
-            ))}
-          </div>
-        </section>
+        <TripSection key={section.id} section={section} sectionIndex={si} />
       ))}
 
       {filteredSections.length === 0 && filteredGroupTrips.length === 0 && (
         <div className="py-20 text-center">
-          <p className="text-zinc-500 text-lg">No trips found matching "{searchQuery}"</p>
+          <p className="text-zinc-500 text-lg">
+            No trips found
+            {searchQuery ? ` matching "${searchQuery}"` : ""}
+            {selectedCategory !== "All" ? ` in ${selectedCategory}` : ""}.
+          </p>
           <Button
             variant="outline"
             className="mt-4"
-            onClick={() => setSearchQuery("")}
+            onClick={() => {
+              setSearchQuery("");
+              setSelectedCategory(DEFAULT_CATEGORY);
+            }}
           >
-            Clear Search
+            Reset filters
           </Button>
         </div>
       )}
