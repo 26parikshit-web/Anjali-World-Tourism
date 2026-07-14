@@ -3,6 +3,7 @@ import { ConditionalChrome } from "@/components/conditional-chrome";
 import { ConditionalEnquiryButton } from "@/components/conditional-enquiry-button";
 import { ChatbotProvider } from "@/contexts/chatbot-context";
 import { AppToaster } from "@/components/app-toaster";
+import { GoogleAds } from "@/components/google-ads";
 import { JsonLd } from "@/components/seo/json-ld";
 import { absoluteUrl, defaultMetadata, getSiteUrl, siteConfig } from "@/lib/seo";
 
@@ -24,6 +25,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body suppressHydrationWarning>
+        <GoogleAds />
         <JsonLd data={organizationJsonLd} />
         <ChatbotProvider>
           <ConditionalChrome>{children}</ConditionalChrome>
